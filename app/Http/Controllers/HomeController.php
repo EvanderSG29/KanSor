@@ -2,27 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Exceptions\PosKantinException;
+use App\Services\PosKantin\PosKantinClient;
+use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
     public function __construct()
     {
         $this->middleware('auth');
     }
 
-    /**
-     * Show the application dashboard.
-     *
-     * @return \Illuminate\Contracts\Support\Renderable
-     */
-    public function index()
+    public function index(PosKantinClient $posKantinClient): View
     {
-        return view('home');
+        $health = null;
+        $summary = null;
+        $backendError = null;
+
+        try {
+            $health = $posKantinClient->health();
+            $summary = $posKantinClient->dashboardSummary();
+        } catch (PosKantinException $exception) {
+            $backendError = $exception->getMessage();
+        }
+
+        return view('home', [
+            'backendError' => $backendError,
+            'health' => $health,
+            'summary' => $summary,
+        ]);
     }
 }

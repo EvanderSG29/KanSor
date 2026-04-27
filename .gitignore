@@ -20,6 +20,10 @@
 /storage/*.key
 /storage/pail
 /vendor
+/apps-script/.clasp.json
+/apps-script/.clasprc.json
+/apps-script/client_secret.json
+/apps-script/client_secret*.json
 _ide_helper.php
 Homestead.json
 Homestead.yaml

@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'pos_kantin' => [
+        'api_url' => env('POS_KANTIN_API_URL'),
+        'admin_email' => env('POS_KANTIN_ADMIN_EMAIL'),
+        'admin_password' => env('POS_KANTIN_ADMIN_PASSWORD'),
+        'legacy_spreadsheet_id' => env('POS_KANTIN_LEGACY_SPREADSHEET_ID'),
+        'timeout' => (int) env('POS_KANTIN_TIMEOUT', 20),
+        'connect_timeout' => (int) env('POS_KANTIN_CONNECT_TIMEOUT', 10),
+        'ca_bundle' => env('POS_KANTIN_CA_BUNDLE'),
+        'token_cache_key' => env('POS_KANTIN_TOKEN_CACHE_KEY', 'pos_kantin.service_account.token'),
+    ],
+
 ];

@@ -16,12 +16,12 @@
 | Patch 3 | Tambah integrasi Laravel server-side: config `services.pos_kantin`, `.env.example`, `PosKantinClient`, exception, token cache service-account. | Laravel bisa memanggil `health`, `login`, dan action bertoken tanpa mengekspos token ke browser. |
 | Patch 4 | Integrasi AdminLTE: dashboard menampilkan status backend dan ringkasan dari `dashboardSummary`; sidebar dibuat rapi untuk Transaksi, Simpanan, Pemasok, Pembayaran, Laporan, Pengguna. | Layout tetap extend `resources/views/layouts/app.blade.php`, AdminLTE tidak rusak. |
 | Patch 5 | Implementasi modul per halaman secara bertahap: transaksi, simpanan, pemasok, payout, users. | Tiap modul punya controller tipis, request tervalidasi, dan test HTTP fake. |
-| Patch 6 | Migrasi data lama opsional: backup/export spreadsheet Ivan, import terkontrol ke spreadsheet baru, verifikasi jumlah dan format baris. | Data lama hanya masuk setelah backend baru lulus validasi. |
+| Patch 6 | Migrasi data lama opsional: backup/export spreadsheet Ivan, import terkontrol ke spreadsheet baru, verifikasi jumlah dan format baris. Status 2026-04-27: tooling preview/commit sudah ada di Apps Script + Laravel command, eksekusi live menunggu source spreadsheet ID lama. | Data lama hanya masuk setelah backend baru lulus validasi. |
 
 ## Interfaces
 - Apps Script tetap memakai kontrak `GET ?action=health` dan `POST { action, token?, payload? }` dengan response `{ success, message, data }`.
-- Env Laravel yang ditambahkan: `POS_KANTIN_API_URL`, `POS_KANTIN_ADMIN_EMAIL`, `POS_KANTIN_ADMIN_PASSWORD`, `POS_KANTIN_TIMEOUT`, `POS_KANTIN_CONNECT_TIMEOUT`.
-- `PosKantinClient` menyediakan `health()`, `request($action, $payload = [], $token = null)`, `loginAsServiceAccount()`, dan wrapper awal untuk `dashboardSummary`, `listTransactions`, `listSuppliers`.
+- Env Laravel yang ditambahkan: `POS_KANTIN_API_URL`, `POS_KANTIN_ADMIN_EMAIL`, `POS_KANTIN_ADMIN_PASSWORD`, `POS_KANTIN_LEGACY_SPREADSHEET_ID`, `POS_KANTIN_TIMEOUT`, `POS_KANTIN_CONNECT_TIMEOUT`.
+- `PosKantinClient` menyediakan `health()`, `request($action, $payload = [], $token = null)`, `loginAsServiceAccount()`, wrapper awal untuk `dashboardSummary`, `listTransactions`, `listSuppliers`, dan `migrateLegacySpreadsheet`.
 - Semua route proxy data POS wajib di dalam middleware `auth`; Laravel auth lokal tetap sumber login KanSor untuk tahap awal.
 
 ## Test Plan
@@ -30,6 +30,7 @@
 - Jalankan `vendor/bin/pint --dirty --format agent` setelah perubahan PHP.
 - Jalankan `npm run build` setelah perubahan Blade/Vite/AdminLTE.
 - Manual check: `php artisan route:list --except-vendor`, Apps Script `action=health`, setup spreadsheet, dan dashboard AdminLTE setelah login lokal.
+- Manual check Patch 6: jalankan `php artisan pos-kantin:migrate-legacy-spreadsheet` untuk preview, pastikan jumlah baris per sheet sesuai, lalu lanjut `--commit` setelah source spreadsheet ID lama tersedia.
 
 ## Risks & Mitigations
 - Salah akun Google: pakai CLASP profile `evander`, jangan pakai script ID Ivan, dan jangan commit `.clasp.json`.
@@ -38,3 +39,4 @@
 - Quota Apps Script: mulai dengan request server-side, timeout/retry eksplisit, cache token, dan modul data dipatch bertahap.
 - AdminLTE rusak karena copy UI lama: jangan copy frontend Electron/SB Admin dari `pos-kantin`; semua UI dibuat sebagai Blade yang extend layout KanSor.
 - Migrasi data korup: data lama tidak dipindah di patch awal; lakukan backup dan import terverifikasi di patch khusus.
+- Patch 6 live tetap berisiko salah sumber spreadsheet; mitigasinya adalah preview default, backup source/target otomatis, dan opsi `--commit` yang eksplisit.

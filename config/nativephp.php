@@ -1,5 +1,7 @@
 <?php
 
+use App\Providers\NativeAppServiceProvider;
+
 return [
     /**
      * The version of your app.
@@ -51,7 +53,18 @@ return [
      * takes care of bootstrapping your application and configuring
      * any global hotkeys, menus, windows, etc.
      */
-    'provider' => \App\Providers\NativeAppServiceProvider::class,
+    'provider' => NativeAppServiceProvider::class,
+
+    /**
+     * The default main window configuration.
+     */
+    'window' => [
+        'width' => (int) env('NATIVEPHP_WINDOW_WIDTH', 1440),
+        'height' => (int) env('NATIVEPHP_WINDOW_HEIGHT', 960),
+        'min_width' => (int) env('NATIVEPHP_WINDOW_MIN_WIDTH', 1024),
+        'min_height' => (int) env('NATIVEPHP_WINDOW_MIN_HEIGHT', 720),
+        'remember_state' => env('NATIVEPHP_WINDOW_REMEMBER_STATE', true),
+    ],
 
     /**
      * A list of environment keys that should be removed from the
