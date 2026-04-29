@@ -1,0 +1,7 @@
+{
+  "supplier_id": 1,
+  "name": "Nasi Uduk",
+  "unit": "porsi",
+  "default_price": 8000,
+  "active": true
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Petugas Kantin 1",
+  "email": "petugas1@example.com",
+  "password": "rahasia123",
+  "password_confirmation": "rahasia123",
+  "role": "petugas",
+  "active": true
+}

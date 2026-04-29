@@ -104,6 +104,7 @@ const CONFIG = {
         "notes",
         "created_at",
         "updated_at",
+        "deleted_at",
       ],
     },
     daily_finance: {

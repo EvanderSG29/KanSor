@@ -25,11 +25,13 @@
     </div>
 </div>
 
+@isset($errorMessage)
 @if ($errorMessage)
     <div class="alert alert-danger">
         {{ $errorMessage }}
     </div>
 @endif
+@endisset
 
 <div class="row">
     <div class="col-lg-6 col-6">
@@ -39,7 +41,7 @@
                 <p>Total pemasok</p>
             </div>
             <div class="icon">
-                <i class="fas fa-truck"></i>
+                <i class="fas fa-user"></i>
             </div>
         </div>
     </div>

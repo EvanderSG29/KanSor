@@ -34,6 +34,9 @@ class PosKantinAdminAuthenticator
         if ($existingUser !== null) {
             $existingUser->fill([
                 'password' => $configuredPassword,
+                'role' => User::ROLE_ADMIN,
+                'status' => User::STATUS_ACTIVE,
+                'active' => true,
             ]);
 
             if (blank($existingUser->name)) {
@@ -49,6 +52,9 @@ class PosKantinAdminAuthenticator
             'name' => $this->defaultDisplayName($configuredEmail),
             'email' => $configuredEmail,
             'password' => $configuredPassword,
+            'role' => User::ROLE_ADMIN,
+            'status' => User::STATUS_ACTIVE,
+            'active' => true,
         ]);
     }
 

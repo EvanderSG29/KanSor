@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Exceptions\PosKantinException;
-use App\Services\PosKantin\PosKantinClient;
+use App\Services\PosKantin\PosKantinLocalRepository;
+use App\Services\PosKantin\PosKantinSyncService;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
@@ -13,23 +13,11 @@ class HomeController extends Controller
         $this->middleware('auth');
     }
 
-    public function index(PosKantinClient $posKantinClient): View
+    public function index(PosKantinLocalRepository $posKantinLocalRepository, PosKantinSyncService $posKantinSyncService): View
     {
-        $health = null;
-        $summary = null;
-        $backendError = null;
-
-        try {
-            $health = $posKantinClient->health();
-            $summary = $posKantinClient->dashboardSummary();
-        } catch (PosKantinException $exception) {
-            $backendError = $exception->getMessage();
-        }
-
         return view('home', [
-            'backendError' => $backendError,
-            'health' => $health,
-            'summary' => $summary,
+            'summary' => $posKantinLocalRepository->dashboardSummary(auth()->user()),
+            'syncStatus' => $posKantinSyncService->statusForUser(auth()->user()),
         ]);
     }
 }

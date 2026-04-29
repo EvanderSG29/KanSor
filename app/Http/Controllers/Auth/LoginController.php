@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Auth\PosKantinAdminAuthenticator;
+use App\Services\Auth\OfflineLoginService;
+use App\Services\Auth\PosKantinUserAuthenticator;
+use App\Services\PosKantin\PosKantinSyncService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class LoginController extends Controller
 {
@@ -29,27 +32,56 @@ class LoginController extends Controller
      */
     protected $redirectTo = '/home';
 
+    protected ?string $failedLoginMessage = null;
+
+    protected ?string $resolvedLoginMode = null;
+
     public function __construct(
-        private PosKantinAdminAuthenticator $posKantinAdminAuthenticator,
+        private OfflineLoginService $offlineLoginService,
+        private PosKantinSyncService $posKantinSyncService,
+        private PosKantinUserAuthenticator $posKantinUserAuthenticator,
     ) {
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
 
+    public function showLoginForm()
+    {
+        return view('auth.login', [
+            'trustedAccounts' => $this->offlineLoginService->trustedAccounts(),
+        ]);
+    }
+
     protected function attemptLogin(Request $request): bool
     {
-        if ($this->guard()->attempt($this->credentials($request), $request->boolean('remember'))) {
-            return true;
-        }
+        $result = $this->posKantinUserAuthenticator->attempt(
+            (string) $request->input('email'),
+            (string) $request->input('password'),
+        );
 
-        $user = $this->posKantinAdminAuthenticator->synchronizeAndResolve($request);
+        if (($result['success'] ?? false) !== true || ! isset($result['user'])) {
+            $this->failedLoginMessage = (string) ($result['message'] ?? __('auth.failed'));
 
-        if ($user === null) {
             return false;
         }
 
-        $this->guard()->login($user, $request->boolean('remember'));
+        $this->resolvedLoginMode = (string) ($result['mode'] ?? 'offline');
+        $this->guard()->login($result['user'], $request->boolean('remember'));
 
         return true;
+    }
+
+    protected function authenticated(Request $request, $user)
+    {
+        if ($this->resolvedLoginMode === 'online') {
+            $this->posKantinSyncService->sync($user, 'login');
+        }
+    }
+
+    protected function sendFailedLoginResponse(Request $request)
+    {
+        throw ValidationException::withMessages([
+            $this->username() => [$this->failedLoginMessage ?: trans('auth.failed')],
+        ]);
     }
 }

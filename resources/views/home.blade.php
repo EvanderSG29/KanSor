@@ -45,7 +45,7 @@
                 <p>Supplier Aktif</p>
             </div>
             <div class="icon">
-                <i class="fas fa-truck-loading"></i>
+                <i class="fas fa-user"></i>
             </div>
             <a href="{{ route('pos-kantin.suppliers.index') }}" class="small-box-footer">Lihat supplier <i class="fas fa-arrow-circle-right"></i></a>
         </div>
@@ -68,21 +68,21 @@
     <div class="col-md-4">
         <div class="card card-primary card-outline">
             <div class="card-header">
-                <h3 class="card-title">Status backend</h3>
+                <h3 class="card-title">Status sinkronisasi</h3>
             </div>
             <div class="card-body">
                 <p class="mb-2">
-                    <span class="badge badge-{{ $backendError ? 'danger' : 'success' }}">
-                        {{ $backendError ? 'Bermasalah' : 'Aktif' }}
+                    <span class="badge badge-{{ ($syncStatus['conflictCount'] ?? 0) > 0 || ($syncStatus['failedCount'] ?? 0) > 0 ? 'danger' : 'success' }}">
+                        {{ ($syncStatus['conflictCount'] ?? 0) > 0 || ($syncStatus['failedCount'] ?? 0) > 0 ? 'Perlu tindakan' : 'Siap' }}
                     </span>
                 </p>
                 <dl class="mb-0">
-                    <dt>Aplikasi</dt>
-                    <dd>{{ $health['appName'] ?? 'Belum tersedia' }}</dd>
-                    <dt>Versi</dt>
-                    <dd>{{ $health['version'] ?? '-' }}</dd>
-                    <dt>Spreadsheet siap</dt>
-                    <dd>{{ ($health['configuredSpreadsheet'] ?? false) ? 'Ya' : 'Belum' }}</dd>
+                    <dt>Sync terakhir</dt>
+                    <dd>{{ $syncStatus['lastRemoteSyncAt'] ? \Illuminate\Support\Carbon::parse($syncStatus['lastRemoteSyncAt'])->format('d M Y H:i') : 'Belum pernah' }}</dd>
+                    <dt>Pending queue</dt>
+                    <dd>{{ number_format($syncStatus['pendingCount'] ?? 0) }}</dd>
+                    <dt>Konflik</dt>
+                    <dd>{{ number_format($syncStatus['conflictCount'] ?? 0) }}</dd>
                 </dl>
             </div>
         </div>
@@ -102,7 +102,7 @@
                         <i class="fas fa-angle-right text-muted"></i>
                     </a>
                     <a href="{{ route('pos-kantin.suppliers.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-truck mr-2 text-warning"></i>Pemasok</span>
+                        <span><i class="fas fa-user mr-2 text-warning"></i>Pemasok</span>
                         <i class="fas fa-angle-right text-muted"></i>
                     </a>
                     <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
@@ -124,41 +124,35 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Ringkasan integrasi backend POS Kantin</h3>
+                <h3 class="card-title">Ringkasan data lokal POS Kantin</h3>
             </div>
             <div class="card-body">
-                @if ($backendError)
-                    <div class="alert alert-danger mb-0">
-                        {{ $backendError }}
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="mb-0">
+                            <dt>Total transaksi</dt>
+                            <dd>{{ number_format($summary['transactionCount'] ?? 0) }}</dd>
+                            <dt>Total omzet</dt>
+                            <dd>Rp {{ number_format($summary['totalGrossSales'] ?? 0, 0, ',', '.') }}</dd>
+                            <dt>Total profit</dt>
+                            <dd>Rp {{ number_format($summary['totalProfit'] ?? 0, 0, ',', '.') }}</dd>
+                            <dt>Total komisi</dt>
+                            <dd>Rp {{ number_format($summary['totalCommission'] ?? 0, 0, ',', '.') }}</dd>
+                        </dl>
                     </div>
-                @else
-                    <div class="row">
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt>Total transaksi</dt>
-                                <dd>{{ number_format($summary['transactionCount'] ?? 0) }}</dd>
-                                <dt>Total omzet</dt>
-                                <dd>Rp {{ number_format($summary['totalGrossSales'] ?? 0, 0, ',', '.') }}</dd>
-                                <dt>Total profit</dt>
-                                <dd>Rp {{ number_format($summary['totalProfit'] ?? 0, 0, ',', '.') }}</dd>
-                                <dt>Total komisi</dt>
-                                <dd>Rp {{ number_format($summary['totalCommission'] ?? 0, 0, ',', '.') }}</dd>
-                            </dl>
-                        </div>
-                        <div class="col-md-6">
-                            <dl class="mb-0">
-                                <dt>User aktif</dt>
-                                <dd>{{ number_format($summary['userCount'] ?? 0) }}</dd>
-                                <dt>Pembeli aktif</dt>
-                                <dd>{{ number_format($summary['activeBuyerCount'] ?? 0) }}</dd>
-                                <dt>Simpanan tercatat</dt>
-                                <dd>{{ number_format($summary['savingsCount'] ?? 0) }}</dd>
-                                <dt>Kembalian pending</dt>
-                                <dd>Rp {{ number_format($summary['pendingChangeAmount'] ?? 0, 0, ',', '.') }}</dd>
-                            </dl>
-                        </div>
+                    <div class="col-md-6">
+                        <dl class="mb-0">
+                            <dt>User aktif</dt>
+                            <dd>{{ number_format($summary['userCount'] ?? 0) }}</dd>
+                            <dt>Pembeli aktif</dt>
+                            <dd>{{ number_format($summary['activeBuyerCount'] ?? 0) }}</dd>
+                            <dt>Simpanan tercatat</dt>
+                            <dd>{{ number_format($summary['savingsCount'] ?? 0) }}</dd>
+                            <dt>Kembalian pending</dt>
+                            <dd>Rp {{ number_format($summary['pendingChangeAmount'] ?? 0, 0, ',', '.') }}</dd>
+                        </dl>
                     </div>
-                @endif
+                </div>
             </div>
         </div>
     </div>

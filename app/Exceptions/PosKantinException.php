@@ -22,4 +22,14 @@ class PosKantinException extends Exception
     {
         return $this->context;
     }
+
+    public function isConnectivityFailure(): bool
+    {
+        return ($this->context['category'] ?? null) === 'connection';
+    }
+
+    public function isAuthenticationFailure(): bool
+    {
+        return ($this->context['category'] ?? null) === 'authentication';
+    }
 }

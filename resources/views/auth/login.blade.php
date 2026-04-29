@@ -12,7 +12,18 @@
 
     <div class="card">
         <div class="card-body login-card-body">
-            <p class="login-box-msg">{{ __('Sign in to start your session') }}</p>
+            <p class="login-box-msg">Login online sekali, lalu akun yang sudah trusted bisa masuk lagi saat offline.</p>
+
+            @if (! empty($trustedAccounts))
+                <div class="alert alert-info py-2">
+                    <strong>Akun siap offline di perangkat ini:</strong>
+                    <ul class="mb-0 pl-3">
+                        @foreach ($trustedAccounts as $trustedAccount)
+                            <li>{{ $trustedAccount['name'] }} - {{ $trustedAccount['email'] }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             <form method="POST" action="{{ route('login') }}">
                 @csrf

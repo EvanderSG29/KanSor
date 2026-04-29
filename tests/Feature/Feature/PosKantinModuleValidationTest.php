@@ -2,21 +2,8 @@
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\Request;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    Config::set('cache.default', 'array');
-    Config::set('services.pos_kantin.api_url', 'https://example.test/macros/s/api/exec');
-    Config::set('services.pos_kantin.admin_email', 'evandersmidgidiin@gmail.com');
-    Config::set('services.pos_kantin.admin_password', 'secret-password');
-    Cache::flush();
-    Http::preventStrayRequests();
-});
 
 test('transaction module validates invalid filters', function () {
     $user = User::factory()->create();
@@ -49,39 +36,21 @@ test('supplier module validates invalid filter values', function () {
         ]);
 });
 
-test('module pages render backend errors from pos kantin client', function (string $routeName, array $parameters = []) {
-    Http::fake([
-        'https://example.test/*' => function (Request $request) {
-            if (($request['action'] ?? null) === 'login') {
-                return Http::response([
-                    'success' => true,
-                    'message' => 'Login berhasil.',
-                    'data' => [
-                        'token' => 'error-token',
-                        'expiresAt' => now()->addHour()->toIso8601String(),
-                        'user' => ['email' => 'evandersmidgidiin@gmail.com'],
-                    ],
-                ]);
-            }
-
-            return Http::response([
-                'success' => false,
-                'message' => 'Backend POS Kantin sedang tidak tersedia.',
-                'data' => null,
-            ]);
-        },
+test('module pages render empty local data gracefully', function (string $routeName, string $expectedText, array $parameters = []) {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-EMPTY',
+        'role' => 'admin',
+        'status' => 'aktif',
     ]);
-
-    $user = User::factory()->create();
 
     $this->actingAs($user)
         ->get(route($routeName, $parameters))
         ->assertSuccessful()
-        ->assertSee('Backend POS Kantin sedang tidak tersedia.');
+        ->assertSee($expectedText);
 })->with([
-    'transactions' => ['pos-kantin.transactions.index', []],
-    'savings' => ['pos-kantin.savings.index', []],
-    'suppliers' => ['pos-kantin.suppliers.index', []],
-    'supplier payouts' => ['pos-kantin.supplier-payouts.index', []],
-    'users' => ['pos-kantin.users.index', []],
+    'transactions' => ['pos-kantin.transactions.index', 'Belum ada data transaksi.', []],
+    'savings' => ['pos-kantin.savings.index', 'Belum ada data simpanan.', []],
+    'suppliers' => ['pos-kantin.suppliers.index', 'Belum ada data pemasok.', []],
+    'supplier payouts' => ['pos-kantin.supplier-payouts.index', 'Belum ada payout outstanding.', []],
+    'users' => ['pos-kantin.users.index', 'Belum ada data pengguna.', []],
 ]);

@@ -3,6 +3,7 @@
 use App\Events\OpenTelescopeWindow;
 use App\Events\ToggleDebugbarDrawer;
 use App\Providers\NativeAppServiceProvider;
+use Illuminate\Support\Facades\DB;
 use Native\Desktop\Client\Client;
 use Native\Desktop\Facades\Window;
 use Native\Desktop\Menu\MenuBuilder;
@@ -14,8 +15,20 @@ uses(TestCase::class);
 test('it shares the main sqlite database with nativephp and registers the debug menu', function () {
     config([
         'nativephp-internal.running' => true,
+        'database.default' => 'nativephp',
+        'database.connections.nativephp' => [
+            'driver' => 'sqlite',
+            'database' => database_path('nativephp.sqlite'),
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+        ],
         'database.connections.nativephp.database' => database_path('nativephp.sqlite'),
     ]);
+
+    DB::purge('nativephp');
+
+    expect(DB::connection('nativephp')->getDatabaseName())
+        ->toBe(database_path('nativephp.sqlite'));
 
     $client = Mockery::mock(Client::class);
     $client->shouldReceive('post')
@@ -44,6 +57,8 @@ test('it shares the main sqlite database with nativephp and registers the debug 
     app(NativeAppServiceProvider::class)->boot();
 
     expect(config('database.connections.nativephp.database'))
+        ->toBe(database_path('database.sqlite'))
+        ->and(DB::connection('nativephp')->getDatabaseName())
         ->toBe(database_path('database.sqlite'))
         ->and($mainWindow->webPreferences)
         ->toMatchArray(['webviewTag' => true]);

@@ -122,6 +122,16 @@
                 }
             </style>
         @endif
+        @php
+            $kanSorSync = [
+                'statusUrl' => route('pos-kantin.sync.status'),
+                'autoUrl' => route('pos-kantin.sync.auto'),
+                'intervalSeconds' => (int) ($kanSorSyncNavigationStatus['syncIntervalSeconds'] ?? config('services.pos_kantin.sync_interval_seconds', 60)),
+            ];
+        @endphp
+        <script>
+            window.KanSorSync = {{ \Illuminate\Support\Js::from($kanSorSync) }};
+        </script>
     @endauth
     @stack('styles')
 </head>
@@ -163,6 +173,9 @@
                             </li>
                         @endif
                     @else
+                        <li class="nav-item d-flex align-items-center mr-2">
+                            <span class="badge badge-secondary" data-sync-indicator>Sync</span>
+                        </li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-expanded="false">
                                 <i class="far fa-user mr-1"></i>
@@ -217,9 +230,37 @@
 
                                 <li class="nav-header">OPERASIONAL</li>
                                 <li class="nav-item">
+                                    <a href="{{ route('pos-kantin.sales.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.sales.*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-cash-register"></i>
+                                        <p>Transaksi Lokal</p>
+                                    </a>
+                                </li>
+                                @if (Auth::user()->isAdmin())
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.admin.suppliers.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.suppliers.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-user"></i>
+                                            <p>Pemasok Lokal</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.admin.foods.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.foods.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-utensils"></i>
+                                            <p>Makanan Lokal</p>
+                                        </a>
+                                    </li>
+                                @endif
+                                <li class="nav-item">
+                                    <a href="{{ route('pos-kantin.preferences.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.preferences.*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-sliders-h"></i>
+                                        <p>Preferensi</p>
+                                    </a>
+                                </li>
+
+                                <li class="nav-header">INTEGRASI BACKEND</li>
+                                <li class="nav-item">
                                     <a href="{{ route('pos-kantin.transactions.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.transactions.*') ? 'active' : '' }}">
                                         <i class="nav-icon fas fa-receipt"></i>
-                                        <p>Transaksi</p>
+                                        <p>Snapshot Transaksi</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
@@ -230,30 +271,61 @@
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('pos-kantin.suppliers.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.suppliers.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-truck"></i>
-                                        <p>Pemasok</p>
+                                        <i class="nav-icon fas fa-user"></i>
+                                        <p>Snapshot Pemasok</p>
                                     </a>
                                 </li>
 
-                                <li class="nav-header">PELAPORAN</li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.supplier-payouts.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-hand-holding-usd"></i>
-                                        <p>Pembayaran</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-chart-pie"></i>
-                                        <p>Laporan</p>
-                                    </a>
-                                </li>
+                                @if (Auth::user()->isAdmin())
+                                    <li class="nav-header">PELAPORAN</li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.admin.sales.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.sales.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-check-double"></i>
+                                            <p>Konfirmasi Admin</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.admin.canteen-totals.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.canteen-totals.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-chart-line"></i>
+                                            <p>Rekap Kantin</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.supplier-payouts.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-hand-holding-usd"></i>
+                                            <p>Pembayaran Snapshot</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-chart-pie"></i>
+                                            <p>Laporan Snapshot</p>
+                                        </a>
+                                    </li>
 
-                                <li class="nav-header">ADMINISTRASI</li>
+                                    <li class="nav-header">ADMINISTRASI</li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.admin.users.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.users.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-users-cog"></i>
+                                            <p>Pengguna Lokal</p>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a href="{{ route('pos-kantin.users.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.users.*') ? 'active' : '' }}">
+                                            <i class="nav-icon fas fa-database"></i>
+                                            <p>Pengguna Snapshot</p>
+                                        </a>
+                                    </li>
+                                @endif
                                 <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.users.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.users.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-users-cog"></i>
-                                        <p>Pengguna</p>
+                                    <a href="{{ route('pos-kantin.sync.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.sync.*') ? 'active' : '' }}">
+                                        <i class="nav-icon fas fa-sync-alt"></i>
+                                        <p>
+                                            Sinkronisasi
+                                            @if (($kanSorSyncNavigationStatus['pendingCount'] ?? 0) > 0 || ($kanSorSyncNavigationStatus['conflictCount'] ?? 0) > 0)
+                                                <span class="right badge badge-warning">{{ ($kanSorSyncNavigationStatus['pendingCount'] ?? 0) + ($kanSorSyncNavigationStatus['conflictCount'] ?? 0) }}</span>
+                                            @endif
+                                        </p>
                                     </a>
                                 </li>
                             @else

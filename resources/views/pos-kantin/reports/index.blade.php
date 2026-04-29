@@ -14,11 +14,13 @@
 @endsection
 
 @section('content')
+@isset($errorMessage)
 @if ($errorMessage)
     <div class="alert alert-danger">
         {{ $errorMessage }}
     </div>
 @endif
+@endisset
 
 <div class="row">
     <div class="col-lg-3 col-6">

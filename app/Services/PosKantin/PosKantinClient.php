@@ -3,15 +3,13 @@
 namespace App\Services\PosKantin;
 
 use App\Exceptions\PosKantinException;
-use Illuminate\Http\Client\ConnectionException;
-use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\Response;
-use Illuminate\Support\Facades\Http;
+use App\Services\PosKantin\Concerns\InteractsWithPosKantinApi;
 use Illuminate\Support\Str;
-use Throwable;
 
 class PosKantinClient
 {
+    use InteractsWithPosKantinApi;
+
     public function __construct(
         protected PosKantinServiceTokenCache $tokenCache,
     ) {}
@@ -162,37 +160,108 @@ class PosKantinClient
         return is_array($data) ? $data : [];
     }
 
-    protected function ensureConfigured(): void
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function createTransaction(array $payload): array
     {
-        if (! $this->configured()) {
-            throw new PosKantinException('POS Kantin API URL belum dikonfigurasi.');
-        }
+        return $this->mutation('createTransaction', $payload);
     }
 
-    protected function apiUrl(): string
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function updateTransaction(string|int $id, array $payload): array
     {
-        return trim((string) config('services.pos_kantin.api_url'));
+        return $this->mutation('updateTransaction', array_merge($payload, ['id' => $id]));
     }
 
-    protected function http(): PendingRequest
+    /**
+     * @return array<string, mixed>
+     */
+    public function deleteTransaction(string|int $id): array
     {
-        $request = Http::acceptJson()
-            ->asJson()
-            ->connectTimeout((int) config('services.pos_kantin.connect_timeout', 10))
-            ->timeout((int) config('services.pos_kantin.timeout', 20))
-            ->retry([250, 500], function (Throwable $exception): bool {
-                return $exception instanceof ConnectionException;
-            }, throw: false);
+        return $this->mutation('deleteTransaction', ['id' => $id]);
+    }
 
-        $caBundle = trim((string) config('services.pos_kantin.ca_bundle'));
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function createSupplier(array $payload): array
+    {
+        return $this->mutation('createSupplier', $payload);
+    }
 
-        if ($caBundle !== '') {
-            $request = $request->withOptions([
-                'verify' => $caBundle,
-            ]);
-        }
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function updateSupplier(string|int $id, array $payload): array
+    {
+        return $this->mutation('updateSupplier', array_merge($payload, ['id' => $id]));
+    }
 
-        return $request;
+    /**
+     * @return array<string, mixed>
+     */
+    public function deleteSupplier(string|int $id): array
+    {
+        return $this->mutation('deleteSupplier', ['id' => $id]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function createUser(array $payload): array
+    {
+        return $this->mutation('createUser', $payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function updateUser(string|int $id, array $payload): array
+    {
+        return $this->mutation('updateUser', array_merge($payload, ['id' => $id]));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function deleteUser(string|int $id): array
+    {
+        return $this->mutation('deleteUser', ['id' => $id]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function createFood(array $payload): array
+    {
+        return $this->mutation('createFood', $payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function updateFood(string|int $id, array $payload): array
+    {
+        return $this->mutation('updateFood', array_merge($payload, ['id' => $id]));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function deleteFood(string|int $id): array
+    {
+        return $this->mutation('deleteFood', ['id' => $id]);
     }
 
     protected function performRequest(string $action, array $payload = [], ?string $token = null): mixed
@@ -213,86 +282,6 @@ class PosKantinClient
         return $this->extractData($response, $action);
     }
 
-    /**
-     * @param  array<string, mixed>  $query
-     */
-    protected function sendGet(string $action, array $query): Response
-    {
-        try {
-            return $this->http()->get($this->apiUrl(), $query);
-        } catch (ConnectionException $exception) {
-            throw new PosKantinException(
-                sprintf('Gagal terhubung ke POS Kantin API saat memanggil action [%s].', $action),
-                [
-                    'action' => $action,
-                    'error' => $exception->getMessage(),
-                ],
-                $exception,
-            );
-        }
-    }
-
-    /**
-     * @param  array<string, mixed>  $body
-     */
-    protected function sendPost(string $action, array $body): Response
-    {
-        try {
-            return $this->http()->post($this->apiUrl(), $body);
-        } catch (ConnectionException $exception) {
-            throw new PosKantinException(
-                sprintf('Gagal terhubung ke POS Kantin API saat memanggil action [%s].', $action),
-                [
-                    'action' => $action,
-                    'error' => $exception->getMessage(),
-                ],
-                $exception,
-            );
-        }
-    }
-
-    protected function extractData(Response $response, string $action): mixed
-    {
-        $payload = $this->decodePayload($response, $action);
-
-        return $payload['data'] ?? null;
-    }
-
-    /**
-     * @return array{success: bool, message?: string, data?: mixed}
-     */
-    protected function decodePayload(Response $response, string $action): array
-    {
-        if ($response->failed()) {
-            throw new PosKantinException(
-                sprintf('POS Kantin API merespons status HTTP %s.', $response->status()),
-                [
-                    'action' => $action,
-                    'body' => Str::limit($response->body(), 500),
-                    'status' => $response->status(),
-                ],
-            );
-        }
-
-        $payload = $response->json();
-
-        if (! is_array($payload) || ! array_key_exists('success', $payload)) {
-            throw new PosKantinException('Respons POS Kantin tidak valid atau bukan JSON yang diharapkan.', [
-                'action' => $action,
-                'body' => Str::limit($response->body(), 500),
-            ]);
-        }
-
-        if (($payload['success'] ?? false) !== true) {
-            throw new PosKantinException((string) ($payload['message'] ?? 'POS Kantin API mengembalikan kegagalan.'), [
-                'action' => $action,
-                'payload' => $payload,
-            ]);
-        }
-
-        return $payload;
-    }
-
     protected function shouldRefreshToken(PosKantinException $exception): bool
     {
         $message = Str::lower($exception->getMessage());
@@ -303,5 +292,16 @@ class PosKantinClient
             'user sesi tidak aktif',
             'token wajib disertakan',
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    protected function mutation(string $action, array $payload): array
+    {
+        $data = $this->request($action, $payload);
+
+        return is_array($data) ? $data : [];
     }
 }

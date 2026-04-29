@@ -1,15 +1,95 @@
 <?php
 
+use App\Models\PosKantinDeviceCredential;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
-test('it logs in using configured pos kantin admin credentials and provisions a local user', function () {
+beforeEach(function () {
     config([
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => '12345678',
+        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.pos_kantin.device_label' => 'KanSor Test Device',
+        'services.pos_kantin.offline_login_days' => 30,
+    ]);
+
+    Http::preventStrayRequests();
+});
+
+test('it logs in using remote pos kantin credentials and provisions offline access locally', function () {
+    Http::fake([
+        'https://example.test/*' => function (Request $request) {
+            return match ($request['action'] ?? null) {
+                'login' => Http::response([
+                    'success' => true,
+                    'message' => 'Login berhasil.',
+                    'data' => [
+                        'token' => 'session-token',
+                        'expiresAt' => now()->addHour()->toIso8601String(),
+                        'user' => [
+                            'id' => 'USR-001',
+                            'fullName' => 'Evander Smid Gidiin',
+                            'email' => 'evandersmidgidiin@gmail.com',
+                            'role' => 'admin',
+                            'status' => 'aktif',
+                            'authUpdatedAt' => '2026-04-28T10:00:00.000Z',
+                        ],
+                    ],
+                ]),
+                'createTrustedDevice' => Http::response([
+                    'success' => true,
+                    'message' => 'Trusted device dibuat.',
+                    'data' => [
+                        'token' => 'trusted-device-token',
+                        'expiresAt' => now()->addDays(30)->toIso8601String(),
+                        'user' => [
+                            'id' => 'USR-001',
+                        ],
+                    ],
+                ]),
+                'syncPull' => Http::response([
+                    'success' => true,
+                    'message' => 'Sync pull berhasil.',
+                    'data' => [
+                        'users' => [[
+                            'id' => 'USR-001',
+                            'fullName' => 'Evander Smid Gidiin',
+                            'nickname' => 'Evander',
+                            'email' => 'evandersmidgidiin@gmail.com',
+                            'role' => 'admin',
+                            'status' => 'aktif',
+                            'authUpdatedAt' => '2026-04-28T10:00:00.000Z',
+                            'createdAt' => '2026-04-28T09:00:00.000Z',
+                            'updatedAt' => '2026-04-28T10:00:00.000Z',
+                        ]],
+                        'buyers' => [],
+                        'savings' => [],
+                        'suppliers' => [],
+                        'transactions' => [],
+                        'dailyFinance' => [],
+                        'changeEntries' => [],
+                        'supplierPayouts' => [],
+                        'cursors' => [
+                            'users' => '2026-04-28T10:00:00.000Z',
+                            'buyers' => '',
+                            'savings' => '',
+                            'suppliers' => '',
+                            'transactions' => '',
+                            'dailyFinance' => '',
+                            'changeEntries' => '',
+                            'supplierPayouts' => '',
+                        ],
+                    ],
+                ]),
+                default => Http::response([
+                    'success' => true,
+                    'message' => 'OK',
+                    'data' => ['results' => []],
+                ]),
+            };
+        },
     ]);
 
     $response = $this->post('/login', [
@@ -17,39 +97,75 @@ test('it logs in using configured pos kantin admin credentials and provisions a 
         'password' => '12345678',
     ]);
 
-    $user = User::query()
-        ->where('email', 'evandersmidgidiin@gmail.com')
-        ->firstOrFail();
+    $user = User::query()->where('email', 'evandersmidgidiin@gmail.com')->firstOrFail();
+    $credential = PosKantinDeviceCredential::query()->whereBelongsTo($user, 'user')->first();
 
     $this->assertAuthenticatedAs($user);
     $response->assertRedirect('/home');
 
-    expect(Hash::check('12345678', $user->password))->toBeTrue()
-        ->and($user->name)->toBe('Evandersmidgidiin');
+    expect($user->remote_user_id)->toBe('USR-001')
+        ->and($user->canUseOfflineLogin())->toBeTrue()
+        ->and($credential)->not->toBeNull()
+        ->and($credential?->trusted_device_token)->toBe('trusted-device-token');
 });
 
-test('it syncs the local password for the configured pos kantin admin user', function () {
-    config([
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => '87654321',
+test('it can log in offline when local trust is still valid', function () {
+    Http::fake([
+        'https://example.test/*' => Http::failedConnection(),
     ]);
 
     $user = User::factory()->create([
-        'email' => 'evandersmidgidiin@gmail.com',
-        'password' => 'old-password',
-        'name' => 'Evander',
+        'email' => 'offline@example.com',
+        'password' => '12345678',
+        'remote_user_id' => 'USR-OFFLINE',
+        'role' => 'petugas',
+        'status' => 'aktif',
+        'offline_login_expires_at' => now()->addDays(5),
+    ]);
+
+    PosKantinDeviceCredential::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'remote_user_id' => 'USR-OFFLINE',
+        'email' => 'offline@example.com',
+        'trusted_device_token' => 'trusted-token',
+        'trusted_device_expires_at' => now()->addDays(5),
     ]);
 
     $response = $this->post('/login', [
-        'email' => 'evandersmidgidiin@gmail.com',
-        'password' => '87654321',
+        'email' => 'offline@example.com',
+        'password' => '12345678',
     ]);
-
-    $user->refresh();
 
     $this->assertAuthenticatedAs($user);
     $response->assertRedirect('/home');
+});
 
-    expect(Hash::check('87654321', $user->password))->toBeTrue()
-        ->and($user->name)->toBe('Evander');
+test('it rejects offline login when the local trust already expired', function () {
+    Http::fake([
+        'https://example.test/*' => Http::failedConnection(),
+    ]);
+
+    $user = User::factory()->create([
+        'email' => 'expired@example.com',
+        'password' => '12345678',
+        'remote_user_id' => 'USR-EXPIRED',
+        'role' => 'petugas',
+        'status' => 'aktif',
+        'offline_login_expires_at' => now()->subMinute(),
+    ]);
+
+    PosKantinDeviceCredential::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'remote_user_id' => 'USR-EXPIRED',
+        'email' => 'expired@example.com',
+        'trusted_device_token' => 'trusted-token',
+        'trusted_device_expires_at' => now()->addDays(5),
+    ]);
+
+    $this->post('/login', [
+        'email' => 'expired@example.com',
+        'password' => '12345678',
+    ])->assertSessionHasErrors('email');
+
+    $this->assertGuest();
 });

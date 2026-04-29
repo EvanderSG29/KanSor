@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Events\OpenTelescopeWindow;
 use App\Events\ToggleDebugbarDrawer;
+use Illuminate\Support\Facades\DB;
 use Native\Desktop\Contracts\ProvidesPhpIni;
 use Native\Desktop\Facades\Menu;
 use Native\Desktop\Facades\Window;
@@ -32,6 +33,9 @@ class NativeAppServiceProvider implements ProvidesPhpIni
         config([
             'database.connections.nativephp.database' => database_path('database.sqlite'),
         ]);
+
+        DB::purge('nativephp');
+        DB::reconnect('nativephp');
     }
 
     private function openMainWindow(): void

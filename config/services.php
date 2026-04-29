@@ -44,6 +44,9 @@ return [
         'connect_timeout' => (int) env('POS_KANTIN_CONNECT_TIMEOUT', 10),
         'ca_bundle' => env('POS_KANTIN_CA_BUNDLE'),
         'token_cache_key' => env('POS_KANTIN_TOKEN_CACHE_KEY', 'pos_kantin.service_account.token'),
+        'device_label' => env('POS_KANTIN_DEVICE_LABEL', 'KanSor Desktop'),
+        'offline_login_days' => (int) env('POS_KANTIN_OFFLINE_LOGIN_DAYS', 30),
+        'sync_interval_seconds' => (int) env('POS_KANTIN_SYNC_INTERVAL_SECONDS', 60),
     ],
 
 ];

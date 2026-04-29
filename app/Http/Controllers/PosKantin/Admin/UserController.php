@@ -1,0 +1,131 @@
+<?php
+
+namespace App\Http\Controllers\PosKantin\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\PosKantin\Admin\StoreUserRequest;
+use App\Http\Requests\PosKantin\Admin\UpdateUserRequest;
+use App\Models\User;
+use App\Services\PosKantin\PosKantinMutationDispatcher;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $users = User::query()
+            ->when($request->filled('role'), fn ($query) => $query->where('role', $request->string('role')->toString()))
+            ->when($request->filled('active'), fn ($query) => $query->where('active', $request->boolean('active')))
+            ->orderBy('name')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('pos-kantin.admin.users.index', [
+            'filters' => $request->only(['role', 'active']),
+            'users' => $users,
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('pos-kantin.admin.users.create');
+    }
+
+    public function store(StoreUserRequest $request, PosKantinMutationDispatcher $dispatcher): RedirectResponse
+    {
+        $validated = $request->validated();
+        $user = User::query()->create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => $validated['role'],
+            'active' => $validated['active'] ?? false,
+            'status' => ($validated['active'] ?? false) ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
+        ]);
+
+        $dispatcher->dispatch('createUser', [[
+            'id' => $user->getKey(),
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+            'password' => $validated['password'],
+        ]], [
+            'entity' => 'user',
+            'id' => $user->getKey(),
+        ]);
+
+        return redirect()
+            ->route('pos-kantin.admin.users.index')
+            ->with('status', 'Pengguna berhasil ditambahkan.');
+    }
+
+    public function edit(User $user): View
+    {
+        return view('pos-kantin.admin.users.edit', [
+            'userModel' => $user,
+        ]);
+    }
+
+    public function update(UpdateUserRequest $request, User $user, PosKantinMutationDispatcher $dispatcher): RedirectResponse
+    {
+        $validated = $request->validated();
+        $user->fill([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'role' => $validated['role'],
+            'active' => $validated['active'] ?? false,
+            'status' => ($validated['active'] ?? false) ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
+        ]);
+
+        if (filled($validated['password'] ?? null)) {
+            $user->password = $validated['password'];
+        }
+
+        $user->save();
+
+        $payload = [
+            'id' => $user->getKey(),
+            'name' => $user->name,
+            'email' => $user->email,
+            'role' => $user->role,
+            'status' => $user->status,
+        ];
+
+        if (filled($validated['password'] ?? null)) {
+            $payload['password'] = $validated['password'];
+        }
+
+        $dispatcher->dispatch('updateUser', [$user->getKey(), $payload], [
+            'entity' => 'user',
+            'id' => $user->getKey(),
+        ]);
+
+        return redirect()
+            ->route('pos-kantin.admin.users.index')
+            ->with('status', 'Pengguna berhasil diperbarui.');
+    }
+
+    public function destroy(User $user, PosKantinMutationDispatcher $dispatcher): RedirectResponse
+    {
+        if ($user->isAdmin() && $user->active && User::query()->active()->admin()->count() <= 1) {
+            return back()->with('error', 'Admin aktif terakhir tidak boleh dinonaktifkan.');
+        }
+
+        $user->fill([
+            'active' => false,
+            'status' => User::STATUS_INACTIVE,
+        ])->save();
+
+        $dispatcher->dispatch('deleteUser', [$user->getKey()], [
+            'entity' => 'user',
+            'id' => $user->getKey(),
+        ]);
+
+        return redirect()
+            ->route('pos-kantin.admin.users.index')
+            ->with('status', 'Pengguna berhasil dinonaktifkan.');
+    }
+}

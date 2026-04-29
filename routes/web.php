@@ -2,10 +2,18 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NativeDesktopController;
+use App\Http\Controllers\PosKantin\Admin\CanteenTotalController as AdminCanteenTotalController;
+use App\Http\Controllers\PosKantin\Admin\FoodController as AdminFoodController;
+use App\Http\Controllers\PosKantin\Admin\SaleController as AdminSaleController;
+use App\Http\Controllers\PosKantin\Admin\SupplierController as AdminSupplierController;
+use App\Http\Controllers\PosKantin\Admin\UserController as AdminUserController;
+use App\Http\Controllers\PosKantin\PreferenceController;
 use App\Http\Controllers\PosKantin\ReportController;
+use App\Http\Controllers\PosKantin\SaleController as LocalSaleController;
 use App\Http\Controllers\PosKantin\SavingController;
 use App\Http\Controllers\PosKantin\SupplierController;
 use App\Http\Controllers\PosKantin\SupplierPayoutController;
+use App\Http\Controllers\PosKantin\SyncController;
 use App\Http\Controllers\PosKantin\TransactionController;
 use App\Http\Controllers\PosKantin\UserController;
 use Illuminate\Support\Facades\Route;
@@ -13,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return auth()->check()
         ? redirect()->route('home')
-        : view('/auth/login');
+        : redirect()->route('login');
 });
 
 Auth::routes();
@@ -30,5 +38,30 @@ Route::middleware('auth')->group(function () {
         Route::get('/pembayaran', [SupplierPayoutController::class, 'index'])->name('supplier-payouts.index');
         Route::get('/laporan', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/pengguna', [UserController::class, 'index'])->name('users.index');
+        Route::get('/sinkronisasi', [SyncController::class, 'index'])->name('sync.index');
+        Route::get('/sinkronisasi/status', [SyncController::class, 'status'])->name('sync.status');
+        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])->name('sync.auto');
+        Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name('sync.run');
+        Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
+        Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
+        Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
+
+        Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+            Route::resource('users', AdminUserController::class)->except('show');
+            Route::resource('suppliers', AdminSupplierController::class)->except('show');
+            Route::resource('foods', AdminFoodController::class)->except('show');
+            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
+            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index']);
+
+            Route::patch('sales/{sale}/confirm-supplier-paid', [AdminSaleController::class, 'confirmSupplierPaid'])
+                ->name('sales.confirm-supplier-paid');
+            Route::patch('sales/{sale}/confirm-canteen-deposited', [AdminSaleController::class, 'confirmCanteenDeposited'])
+                ->name('sales.confirm-canteen-deposited');
+        });
+
+        Route::middleware('role:admin,petugas')->group(function () {
+            Route::resource('sales', LocalSaleController::class);
+            Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update']);
+        });
     });
 });

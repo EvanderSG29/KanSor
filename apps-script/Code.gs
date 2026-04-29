@@ -62,6 +62,10 @@ function doPost(e) {
         return ok_("Transaksi berhasil dihapus.", deleteTransactionAction_(payload, token));
       case "listSavings":
         return ok_("Data simpanan berhasil diambil.", listSavingsAction_(token));
+      case "saveSaving":
+        return ok_("Data simpanan berhasil disimpan.", saveSavingAction_(payload, token));
+      case "deleteSaving":
+        return ok_("Data simpanan berhasil dihapus.", deleteSavingAction_(payload, token));
       case "listDailyFinance":
         return ok_("Data keuangan harian berhasil diambil.", listDailyFinanceAction_(payload, token));
       case "getDailyFinanceDetail":
@@ -82,6 +86,8 @@ function doPost(e) {
         return ok_("Data pemasok berhasil disimpan.", saveSupplierAction_(payload, token));
       case "syncPull":
         return ok_("Sinkronisasi desktop berhasil diambil.", syncPullAction_(payload, token));
+      case "syncPush":
+        return ok_("Sinkronisasi desktop berhasil dikirim.", syncPushAction_(payload, token));
       case "listSupplierPayouts":
         return ok_("Data pembayaran pemasok berhasil diambil.", listSupplierPayoutsAction_(token));
       case "settleSupplierPayout":

@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use App\Services\PosKantin\PosKantinLocalStore;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +49,12 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * @param  array<int, array<string, mixed>>  $records
+ */
+function seedPosKantinMirror(User $user, string $resource, array $records): void
+{
+    app(PosKantinLocalStore::class)->upsertMirrorRecords($user, $resource, $records);
 }
