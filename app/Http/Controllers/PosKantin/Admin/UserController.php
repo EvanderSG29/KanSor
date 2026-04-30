@@ -7,6 +7,7 @@ use App\Http\Requests\PosKantin\Admin\StoreUserRequest;
 use App\Http\Requests\PosKantin\Admin\UpdateUserRequest;
 use App\Models\User;
 use App\Services\PosKantin\PosKantinMutationDispatcher;
+use App\Services\PosKantin\UserSyncPayloadFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,8 +34,11 @@ class UserController extends Controller
         return view('pos-kantin.admin.users.create');
     }
 
-    public function store(StoreUserRequest $request, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function store(
+        StoreUserRequest $request,
+        PosKantinMutationDispatcher $dispatcher,
+        UserSyncPayloadFactory $userSyncPayloadFactory,
+    ): RedirectResponse {
         $validated = $request->validated();
         $user = User::query()->create([
             'name' => $validated['name'],
@@ -45,21 +49,17 @@ class UserController extends Controller
             'status' => ($validated['active'] ?? false) ? User::STATUS_ACTIVE : User::STATUS_INACTIVE,
         ]);
 
-        $dispatcher->dispatch('createUser', [[
-            'id' => $user->getKey(),
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'status' => $user->status,
-            'password' => $validated['password'],
-        ]], [
+        $dispatchResult = $dispatcher->dispatch('saveUser', [$userSyncPayloadFactory->make($user, $validated['password'])], [
             'entity' => 'user',
             'id' => $user->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.users.index')
-            ->with('status', 'Pengguna berhasil ditambahkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.users.index')
+                ->with('status', 'Pengguna berhasil ditambahkan.'),
+            $dispatchResult,
+        );
     }
 
     public function edit(User $user): View
@@ -69,8 +69,12 @@ class UserController extends Controller
         ]);
     }
 
-    public function update(UpdateUserRequest $request, User $user, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function update(
+        UpdateUserRequest $request,
+        User $user,
+        PosKantinMutationDispatcher $dispatcher,
+        UserSyncPayloadFactory $userSyncPayloadFactory,
+    ): RedirectResponse {
         $validated = $request->validated();
         $user->fill([
             'name' => $validated['name'],
@@ -86,30 +90,24 @@ class UserController extends Controller
 
         $user->save();
 
-        $payload = [
-            'id' => $user->getKey(),
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-            'status' => $user->status,
-        ];
-
-        if (filled($validated['password'] ?? null)) {
-            $payload['password'] = $validated['password'];
-        }
-
-        $dispatcher->dispatch('updateUser', [$user->getKey(), $payload], [
+        $dispatchResult = $dispatcher->dispatch('saveUser', [$userSyncPayloadFactory->make($user, $validated['password'] ?? null)], [
             'entity' => 'user',
             'id' => $user->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.users.index')
-            ->with('status', 'Pengguna berhasil diperbarui.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.users.index')
+                ->with('status', 'Pengguna berhasil diperbarui.'),
+            $dispatchResult,
+        );
     }
 
-    public function destroy(User $user, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function destroy(
+        User $user,
+        PosKantinMutationDispatcher $dispatcher,
+        UserSyncPayloadFactory $userSyncPayloadFactory,
+    ): RedirectResponse {
         if ($user->isAdmin() && $user->active && User::query()->active()->admin()->count() <= 1) {
             return back()->with('error', 'Admin aktif terakhir tidak boleh dinonaktifkan.');
         }
@@ -119,13 +117,16 @@ class UserController extends Controller
             'status' => User::STATUS_INACTIVE,
         ])->save();
 
-        $dispatcher->dispatch('deleteUser', [$user->getKey()], [
+        $dispatchResult = $dispatcher->dispatch('saveUser', [$userSyncPayloadFactory->make($user)], [
             'entity' => 'user',
             'id' => $user->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.users.index')
-            ->with('status', 'Pengguna berhasil dinonaktifkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.users.index')
+                ->with('status', 'Pengguna berhasil dinonaktifkan.'),
+            $dispatchResult,
+        );
     }
 }

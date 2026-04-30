@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Hash;
 
 uses(RefreshDatabase::class);
 
+beforeEach(function () {
+    config([
+        'services.pos_kantin.api_url' => null,
+    ]);
+});
+
 function adminUser(): User
 {
     return User::factory()->create([

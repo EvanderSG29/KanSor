@@ -79,10 +79,12 @@ class PosKantinSyncService
             ->first();
 
         return [
+            'queuedCount' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->where('status', 'pending')->count(),
             'pendingCount' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->where('status', 'pending')->count(),
+            'appliedCount' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->where('status', 'applied')->count(),
             'failedCount' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->where('status', 'failed')->count(),
             'conflictCount' => PosKantinSyncConflict::query()->whereBelongsTo($user, 'user')->where('resolution_status', 'unresolved')->count(),
-            'lastRun' => $latestRun?->only(['id', 'trigger', 'status', 'started_at', 'ended_at', 'error_message']),
+            'lastRun' => $latestRun?->only(['id', 'trigger', 'status', 'started_at', 'ended_at', 'error_message', 'summary']),
             'lastRemoteSyncAt' => optional($credential?->last_remote_sync_at)->toIso8601String(),
             'offlineLoginExpiresAt' => optional($user->offline_login_expires_at)->toIso8601String(),
             'trustedDeviceExpiresAt' => optional($credential?->trusted_device_expires_at)->toIso8601String(),

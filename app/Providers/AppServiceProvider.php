@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Events\OpenTelescopeWindow;
 use App\Listeners\OpenTelescopeWindowListener;
 use App\Services\PosKantin\PosKantinSyncService;
+use App\Services\Setup\SchemaReadinessService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;
@@ -18,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(SchemaReadinessService::class);
     }
 
     /**

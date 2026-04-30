@@ -84,6 +84,10 @@ function doPost(e) {
         return ok_("Daftar pemasok berhasil diambil.", listSuppliersAction_(payload, token));
       case "saveSupplier":
         return ok_("Data pemasok berhasil disimpan.", saveSupplierAction_(payload, token));
+      case "listFoods":
+        return ok_("Daftar makanan berhasil diambil.", listFoodsAction_(payload, token));
+      case "saveFood":
+        return ok_("Data makanan berhasil disimpan.", saveFoodAction_(payload, token));
       case "syncPull":
         return ok_("Sinkronisasi desktop berhasil diambil.", syncPullAction_(payload, token));
       case "syncPush":

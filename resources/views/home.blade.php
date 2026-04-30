@@ -71,18 +71,30 @@
                 <h3 class="card-title">Status sinkronisasi</h3>
             </div>
             <div class="card-body">
+                @php
+                    $queuedCount = (int) ($syncStatus['queuedCount'] ?? $syncStatus['pendingCount'] ?? 0);
+                    $appliedCount = (int) ($syncStatus['appliedCount'] ?? 0);
+                    $failedCount = (int) ($syncStatus['failedCount'] ?? 0);
+                    $conflictCount = (int) ($syncStatus['conflictCount'] ?? 0);
+                    $syncBadgeClass = $failedCount > 0 || $conflictCount > 0 ? 'danger' : ($queuedCount > 0 ? 'warning' : 'success');
+                    $syncBadgeLabel = $failedCount > 0 || $conflictCount > 0 ? 'Perlu tindakan' : ($queuedCount > 0 ? 'Queued' : ($appliedCount > 0 ? 'Applied' : 'Siap'));
+                @endphp
                 <p class="mb-2">
-                    <span class="badge badge-{{ ($syncStatus['conflictCount'] ?? 0) > 0 || ($syncStatus['failedCount'] ?? 0) > 0 ? 'danger' : 'success' }}">
-                        {{ ($syncStatus['conflictCount'] ?? 0) > 0 || ($syncStatus['failedCount'] ?? 0) > 0 ? 'Perlu tindakan' : 'Siap' }}
+                    <span class="badge badge-{{ $syncBadgeClass }}">
+                        {{ $syncBadgeLabel }}
                     </span>
                 </p>
                 <dl class="mb-0">
                     <dt>Sync terakhir</dt>
                     <dd>{{ $syncStatus['lastRemoteSyncAt'] ? \Illuminate\Support\Carbon::parse($syncStatus['lastRemoteSyncAt'])->format('d M Y H:i') : 'Belum pernah' }}</dd>
-                    <dt>Pending queue</dt>
-                    <dd>{{ number_format($syncStatus['pendingCount'] ?? 0) }}</dd>
+                    <dt>Queued</dt>
+                    <dd>{{ number_format($queuedCount) }}</dd>
+                    <dt>Applied</dt>
+                    <dd>{{ number_format($appliedCount) }}</dd>
+                    <dt>Failed</dt>
+                    <dd>{{ number_format($failedCount) }}</dd>
                     <dt>Konflik</dt>
-                    <dd>{{ number_format($syncStatus['conflictCount'] ?? 0) }}</dd>
+                    <dd>{{ number_format($conflictCount) }}</dd>
                 </dl>
             </div>
         </div>

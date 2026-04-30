@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureSchemaIsReady;
 use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -13,7 +14,16 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'schema.ready' => EnsureSchemaIsReady::class,
             'role' => RoleMiddleware::class,
+        ]);
+
+        $middleware->web(prepend: [
+            EnsureSchemaIsReady::class,
+        ]);
+
+        $middleware->validateCsrfTokens(except: [
+            '_setup/run-migrations',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

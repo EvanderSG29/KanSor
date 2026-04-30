@@ -16,7 +16,11 @@ use App\Http\Controllers\PosKantin\SupplierPayoutController;
 use App\Http\Controllers\PosKantin\SyncController;
 use App\Http\Controllers\PosKantin\TransactionController;
 use App\Http\Controllers\PosKantin\UserController;
+use App\Http\Controllers\Setup\SchemaReadinessController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/_setup/schema-readiness', [SchemaReadinessController::class, 'status'])->name('setup.status');
+Route::post('/_setup/run-migrations', [SchemaReadinessController::class, 'runMigrations'])->name('setup.run-migrations');
 
 Route::get('/', function () {
     return auth()->check()

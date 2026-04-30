@@ -120,6 +120,17 @@ class PosKantinClient
     }
 
     /**
+     * @param  array<string, mixed>  $payload
+     * @return array<int, array<string, mixed>>
+     */
+    public function listFoods(array $payload = []): array
+    {
+        $data = $this->request('listFoods', $payload);
+
+        return is_array($data) ? $data : [];
+    }
+
+    /**
      * @return array<int, array<string, mixed>>
      */
     public function listSavings(): array
@@ -164,9 +175,18 @@ class PosKantinClient
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
+    public function saveTransaction(array $payload): array
+    {
+        return $this->mutation('saveTransaction', $payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     public function createTransaction(array $payload): array
     {
-        return $this->mutation('createTransaction', $payload);
+        return $this->saveTransaction($payload);
     }
 
     /**
@@ -175,7 +195,7 @@ class PosKantinClient
      */
     public function updateTransaction(string|int $id, array $payload): array
     {
-        return $this->mutation('updateTransaction', array_merge($payload, ['id' => $id]));
+        return $this->saveTransaction(array_merge($payload, ['id' => $id]));
     }
 
     /**
@@ -190,9 +210,18 @@ class PosKantinClient
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
+    public function saveSupplier(array $payload): array
+    {
+        return $this->mutation('saveSupplier', $payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     public function createSupplier(array $payload): array
     {
-        return $this->mutation('createSupplier', $payload);
+        return $this->saveSupplier($payload);
     }
 
     /**
@@ -201,7 +230,7 @@ class PosKantinClient
      */
     public function updateSupplier(string|int $id, array $payload): array
     {
-        return $this->mutation('updateSupplier', array_merge($payload, ['id' => $id]));
+        return $this->saveSupplier(array_merge($payload, ['id' => $id]));
     }
 
     /**
@@ -216,9 +245,18 @@ class PosKantinClient
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
+    public function saveUser(array $payload): array
+    {
+        return $this->mutation('saveUser', $payload);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
     public function createUser(array $payload): array
     {
-        return $this->mutation('createUser', $payload);
+        return $this->saveUser($payload);
     }
 
     /**
@@ -227,7 +265,7 @@ class PosKantinClient
      */
     public function updateUser(string|int $id, array $payload): array
     {
-        return $this->mutation('updateUser', array_merge($payload, ['id' => $id]));
+        return $this->saveUser(array_merge($payload, ['id' => $id]));
     }
 
     /**
@@ -244,7 +282,7 @@ class PosKantinClient
      */
     public function createFood(array $payload): array
     {
-        return $this->mutation('createFood', $payload);
+        return $this->saveFood($payload);
     }
 
     /**
@@ -253,7 +291,16 @@ class PosKantinClient
      */
     public function updateFood(string|int $id, array $payload): array
     {
-        return $this->mutation('updateFood', array_merge($payload, ['id' => $id]));
+        return $this->saveFood(array_merge($payload, ['id' => $id]));
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function saveFood(array $payload): array
+    {
+        return $this->mutation('saveFood', $payload);
     }
 
     /**

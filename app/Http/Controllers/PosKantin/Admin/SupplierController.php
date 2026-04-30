@@ -7,6 +7,7 @@ use App\Http\Requests\PosKantin\Admin\StoreSupplierRequest;
 use App\Http\Requests\PosKantin\Admin\UpdateSupplierRequest;
 use App\Models\Supplier;
 use App\Services\PosKantin\PosKantinMutationDispatcher;
+use App\Services\PosKantin\SupplierSyncPayloadFactory;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -34,27 +35,27 @@ class SupplierController extends Controller
         return view('pos-kantin.admin.suppliers.create');
     }
 
-    public function store(StoreSupplierRequest $request, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function store(
+        StoreSupplierRequest $request,
+        PosKantinMutationDispatcher $dispatcher,
+        SupplierSyncPayloadFactory $supplierSyncPayloadFactory,
+    ): RedirectResponse {
         $supplier = Supplier::query()->create([
             ...$request->validated(),
             'active' => $request->boolean('active'),
         ]);
 
-        $dispatcher->dispatch('createSupplier', [[
-            'id' => $supplier->getKey(),
-            'name' => $supplier->name,
-            'contactInfo' => $supplier->contact_info,
-            'percentageCut' => (float) $supplier->percentage_cut,
-            'active' => $supplier->active,
-        ]], [
+        $dispatchResult = $dispatcher->dispatch('saveSupplier', [$supplierSyncPayloadFactory->make($supplier)], [
             'entity' => 'supplier',
             'id' => $supplier->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.suppliers.index')
-            ->with('status', 'Pemasok berhasil ditambahkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.suppliers.index')
+                ->with('status', 'Pemasok berhasil ditambahkan.'),
+            $dispatchResult,
+        );
     }
 
     public function edit(Supplier $supplier): View
@@ -64,42 +65,49 @@ class SupplierController extends Controller
         ]);
     }
 
-    public function update(UpdateSupplierRequest $request, Supplier $supplier, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function update(
+        UpdateSupplierRequest $request,
+        Supplier $supplier,
+        PosKantinMutationDispatcher $dispatcher,
+        SupplierSyncPayloadFactory $supplierSyncPayloadFactory,
+    ): RedirectResponse {
         $supplier->fill([
             ...$request->validated(),
             'active' => $request->boolean('active'),
         ])->save();
 
-        $dispatcher->dispatch('updateSupplier', [$supplier->getKey(), [
-            'id' => $supplier->getKey(),
-            'name' => $supplier->name,
-            'contactInfo' => $supplier->contact_info,
-            'percentageCut' => (float) $supplier->percentage_cut,
-            'active' => $supplier->active,
-        ]], [
+        $dispatchResult = $dispatcher->dispatch('saveSupplier', [$supplierSyncPayloadFactory->make($supplier)], [
             'entity' => 'supplier',
             'id' => $supplier->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.suppliers.index')
-            ->with('status', 'Pemasok berhasil diperbarui.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.suppliers.index')
+                ->with('status', 'Pemasok berhasil diperbarui.'),
+            $dispatchResult,
+        );
     }
 
-    public function destroy(Supplier $supplier, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function destroy(
+        Supplier $supplier,
+        PosKantinMutationDispatcher $dispatcher,
+        SupplierSyncPayloadFactory $supplierSyncPayloadFactory,
+    ): RedirectResponse {
         $supplier->fill([
             'active' => false,
         ])->save();
 
-        $dispatcher->dispatch('deleteSupplier', [$supplier->getKey()], [
+        $dispatchResult = $dispatcher->dispatch('saveSupplier', [$supplierSyncPayloadFactory->make($supplier)], [
             'entity' => 'supplier',
             'id' => $supplier->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.suppliers.index')
-            ->with('status', 'Pemasok berhasil dinonaktifkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.suppliers.index')
+                ->with('status', 'Pemasok berhasil dinonaktifkan.'),
+            $dispatchResult,
+        );
     }
 }

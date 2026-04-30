@@ -61,6 +61,11 @@ function getSyncEntityConfig_(entityType) {
         schemaKey: "suppliers",
         sanitizer: sanitizeSupplier_,
       };
+    case "food":
+      return {
+        schemaKey: "foods",
+        sanitizer: sanitizeFood_,
+      };
     case "buyer":
       return {
         schemaKey: "buyers",
@@ -129,6 +134,8 @@ function executeSyncMutation_(mutation, token) {
       return saveUserAction_(payload, token);
     case "saveSupplier":
       return saveSupplierAction_(payload, token);
+    case "saveFood":
+      return saveFoodAction_(payload, token);
     case "saveTransaction":
       return saveTransactionAction_(payload, token);
     case "deleteTransaction":
@@ -231,6 +238,15 @@ function syncPullAction_(payload, token) {
       return String(right.updatedAt).localeCompare(String(left.updatedAt));
     });
 
+  var foods = filterSyncRecordsByRole_(context, "foods", getSheetRecords_("foods"))
+    .filter(function (record) {
+      return isRecordUpdatedSince_(record, since.foods);
+    })
+    .map(sanitizeFood_)
+    .sort(function (left, right) {
+      return String(right.updatedAt).localeCompare(String(left.updatedAt));
+    });
+
   var transactions = filterSyncRecordsByRole_(context, "transactions", getSheetRecords_("transactions"))
     .filter(function (record) {
       return isRecordUpdatedSince_(record, since.transactions);
@@ -272,6 +288,7 @@ function syncPullAction_(payload, token) {
     buyers: buyers,
     savings: savings,
     suppliers: suppliers,
+    foods: foods,
     transactions: transactions,
     dailyFinance: dailyFinance,
     changeEntries: changeEntries,
@@ -281,6 +298,7 @@ function syncPullAction_(payload, token) {
       buyers: buildSheetCursor_("buyers"),
       savings: buildSheetCursor_("savings"),
       suppliers: buildSheetCursor_("suppliers"),
+      foods: buildSheetCursor_("foods"),
       transactions: buildSheetCursor_("transactions"),
       dailyFinance: buildSheetCursor_("daily_finance"),
       changeEntries: buildSheetCursor_("change_entries"),

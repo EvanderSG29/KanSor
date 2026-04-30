@@ -10,7 +10,32 @@
     </div>
 @endif
 
-@if ($errors->any())
+@if (session('warning'))
+    <div class="alert alert-warning">
+        {{ session('warning') }}
+    </div>
+@endif
+
+@php
+    $syncNoticeStatus = session('sync_notice_status');
+    $syncNoticeMessage = session('sync_notice_message');
+    $syncNoticeClass = match ($syncNoticeStatus) {
+        'applied' => 'success',
+        'queued' => 'info',
+        'unsupported' => 'warning',
+        'failed' => 'danger',
+        default => null,
+    };
+@endphp
+
+@if ($syncNoticeClass && $syncNoticeMessage)
+    <div class="alert alert-{{ $syncNoticeClass }}">
+        <strong>Sinkronisasi {{ strtoupper($syncNoticeStatus) }}:</strong>
+        {{ $syncNoticeMessage }}
+    </div>
+@endif
+
+@if (isset($errors) && $errors->any())
     <div class="alert alert-danger">
         <strong>Periksa kembali input berikut:</strong>
         <ul class="mb-0 mt-2 pl-3">

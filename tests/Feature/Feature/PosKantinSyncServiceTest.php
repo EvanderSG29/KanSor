@@ -3,6 +3,7 @@
 use App\Models\PosKantinDeviceCredential;
 use App\Models\PosKantinSyncConflict;
 use App\Models\PosKantinSyncOutbox;
+use App\Models\PosKantinSyncRun;
 use App\Models\User;
 use App\Services\PosKantin\PosKantinLocalStore;
 use App\Services\PosKantin\PosKantinSyncService;
@@ -204,4 +205,91 @@ test('sync service records conflicts from sync push', function () {
     expect($result['ok'])->toBeTrue()
         ->and(PosKantinSyncOutbox::query()->first()?->status)->toBe('conflict')
         ->and(PosKantinSyncConflict::query()->count())->toBe(1);
+});
+
+test('sync status exposes queued applied failed and latest push summary', function () {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => 'admin',
+        'status' => 'aktif',
+    ]);
+
+    PosKantinDeviceCredential::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'remote_user_id' => 'USR-001',
+        'email' => $user->email,
+        'trusted_device_token' => 'trusted-token',
+        'trusted_device_expires_at' => now()->addDays(30),
+        'remote_session_token' => 'session-token',
+        'remote_session_expires_at' => now()->addHour(),
+        'last_remote_sync_at' => now(),
+    ]);
+
+    PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '11111111-1111-1111-1111-111111111111',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-001',
+        'payload' => ['id' => 'SUP-001'],
+        'status' => 'pending',
+    ]);
+
+    PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '22222222-2222-2222-2222-222222222222',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-002',
+        'payload' => ['id' => 'SUP-002'],
+        'status' => 'applied',
+    ]);
+
+    PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '33333333-3333-3333-3333-333333333333',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-003',
+        'payload' => ['id' => 'SUP-003'],
+        'status' => 'failed',
+    ]);
+
+    PosKantinSyncConflict::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'outbox_id' => PosKantinSyncOutbox::query()
+            ->where('client_mutation_id', '33333333-3333-3333-3333-333333333333')
+            ->value('id'),
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-003',
+        'local_payload' => ['id' => 'SUP-003'],
+        'server_payload' => ['id' => 'SUP-003'],
+        'resolution_status' => 'unresolved',
+    ]);
+
+    PosKantinSyncRun::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'trigger' => 'manual',
+        'status' => 'success',
+        'started_at' => now()->subMinute(),
+        'ended_at' => now(),
+        'summary' => [
+            'push' => [
+                'queued' => 2,
+                'applied' => 1,
+                'failed' => 1,
+                'conflicts' => 1,
+            ],
+            'pull' => [],
+        ],
+    ]);
+
+    $status = app(PosKantinSyncService::class)->statusForUser($user);
+
+    expect($status['queuedCount'])->toBe(1)
+        ->and($status['pendingCount'])->toBe(1)
+        ->and($status['appliedCount'])->toBe(1)
+        ->and($status['failedCount'])->toBe(1)
+        ->and($status['conflictCount'])->toBe(1)
+        ->and($status['lastRun']['summary']['push']['applied'] ?? null)->toBe(1);
 });

@@ -4,20 +4,14 @@
 @section('page_subtitle', 'Pantau status offline/online, antrean perubahan lokal, dan konflik sinkronisasi.')
 
 @section('content')
-@if (session('status'))
-    <div class="alert alert-success">{{ session('status') }}</div>
-@endif
-
-@if (session('error'))
-    <div class="alert alert-danger">{{ session('error') }}</div>
-@endif
+@include('pos-kantin.partials.alerts')
 
 <div class="row">
     <div class="col-lg-3 col-6">
         <div class="small-box bg-info">
             <div class="inner">
-                <h3>{{ number_format($syncStatus['pendingCount'] ?? 0) }}</h3>
-                <p>Queue pending</p>
+                <h3>{{ number_format($syncStatus['queuedCount'] ?? $syncStatus['pendingCount'] ?? 0) }}</h3>
+                <p>Queued</p>
             </div>
             <div class="icon">
                 <i class="fas fa-upload"></i>
@@ -25,10 +19,21 @@
         </div>
     </div>
     <div class="col-lg-3 col-6">
+        <div class="small-box bg-success">
+            <div class="inner">
+                <h3>{{ number_format($syncStatus['appliedCount'] ?? 0) }}</h3>
+                <p>Applied</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-6">
         <div class="small-box bg-warning">
             <div class="inner">
                 <h3>{{ number_format($syncStatus['failedCount'] ?? 0) }}</h3>
-                <p>Queue gagal</p>
+                <p>Failed</p>
             </div>
             <div class="icon">
                 <i class="fas fa-exclamation-circle"></i>
@@ -47,7 +52,7 @@
         </div>
     </div>
     <div class="col-lg-3 col-6">
-        <div class="small-box bg-success">
+        <div class="small-box bg-secondary">
             <div class="inner">
                 <h3>{{ $syncStatus['lastRemoteSyncAt'] ? \Illuminate\Support\Carbon::parse($syncStatus['lastRemoteSyncAt'])->format('H:i') : '-' }}</h3>
                 <p>Sync terakhir</p>
@@ -58,6 +63,16 @@
         </div>
     </div>
 </div>
+
+@if (($syncStatus['lastRun']['summary']['push'] ?? null) !== null)
+    <div class="alert alert-light border">
+        Push terakhir:
+        queued {{ number_format($syncStatus['lastRun']['summary']['push']['queued'] ?? 0) }},
+        applied {{ number_format($syncStatus['lastRun']['summary']['push']['applied'] ?? 0) }},
+        failed {{ number_format($syncStatus['lastRun']['summary']['push']['failed'] ?? 0) }},
+        conflict {{ number_format($syncStatus['lastRun']['summary']['push']['conflicts'] ?? 0) }}.
+    </div>
+@endif
 
 <div class="card card-outline card-primary">
     <div class="card-header d-flex align-items-center justify-content-between">

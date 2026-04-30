@@ -7,6 +7,7 @@ use App\Http\Requests\PosKantin\Admin\StoreFoodRequest;
 use App\Http\Requests\PosKantin\Admin\UpdateFoodRequest;
 use App\Models\Food;
 use App\Models\Supplier;
+use App\Services\PosKantin\FoodSyncPayloadFactory;
 use App\Services\PosKantin\PosKantinMutationDispatcher;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -39,25 +40,26 @@ class FoodController extends Controller
         ]);
     }
 
-    public function store(StoreFoodRequest $request, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function store(
+        StoreFoodRequest $request,
+        PosKantinMutationDispatcher $dispatcher,
+        FoodSyncPayloadFactory $payloadFactory,
+    ): RedirectResponse {
         $food = Food::query()->create($request->validated());
 
-        $dispatcher->dispatch('createFood', [[
-            'id' => $food->getKey(),
-            'supplierId' => $food->supplier_id,
-            'name' => $food->name,
-            'unit' => $food->unit,
-            'defaultPrice' => $food->default_price,
-            'active' => $food->active,
-        ]], [
+        $dispatchResult = $dispatcher->dispatch('saveFood', [
+            $payloadFactory->make($food),
+        ], [
             'entity' => 'food',
             'id' => $food->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.foods.index')
-            ->with('status', 'Makanan berhasil ditambahkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.foods.index')
+                ->with('status', 'Makanan berhasil ditambahkan.'),
+            $dispatchResult,
+        );
     }
 
     public function edit(Food $food): View
@@ -68,40 +70,50 @@ class FoodController extends Controller
         ]);
     }
 
-    public function update(UpdateFoodRequest $request, Food $food, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function update(
+        UpdateFoodRequest $request,
+        Food $food,
+        PosKantinMutationDispatcher $dispatcher,
+        FoodSyncPayloadFactory $payloadFactory,
+    ): RedirectResponse {
         $food->fill($request->validated())->save();
 
-        $dispatcher->dispatch('updateFood', [$food->getKey(), [
-            'id' => $food->getKey(),
-            'supplierId' => $food->supplier_id,
-            'name' => $food->name,
-            'unit' => $food->unit,
-            'defaultPrice' => $food->default_price,
-            'active' => $food->active,
-        ]], [
+        $dispatchResult = $dispatcher->dispatch('saveFood', [
+            $payloadFactory->make($food),
+        ], [
             'entity' => 'food',
             'id' => $food->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.foods.index')
-            ->with('status', 'Makanan berhasil diperbarui.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.foods.index')
+                ->with('status', 'Makanan berhasil diperbarui.'),
+            $dispatchResult,
+        );
     }
 
-    public function destroy(Food $food, PosKantinMutationDispatcher $dispatcher): RedirectResponse
-    {
+    public function destroy(
+        Food $food,
+        PosKantinMutationDispatcher $dispatcher,
+        FoodSyncPayloadFactory $payloadFactory,
+    ): RedirectResponse {
         $food->fill([
             'active' => false,
         ])->save();
 
-        $dispatcher->dispatch('deleteFood', [$food->getKey()], [
+        $dispatchResult = $dispatcher->dispatch('saveFood', [
+            $payloadFactory->make($food),
+        ], [
             'entity' => 'food',
             'id' => $food->getKey(),
         ]);
 
-        return redirect()
-            ->route('pos-kantin.admin.foods.index')
-            ->with('status', 'Makanan berhasil dinonaktifkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.admin.foods.index')
+                ->with('status', 'Makanan berhasil dinonaktifkan.'),
+            $dispatchResult,
+        );
     }
 }

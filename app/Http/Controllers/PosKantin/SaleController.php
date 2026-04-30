@@ -10,8 +10,8 @@ use App\Models\Sale;
 use App\Models\Supplier;
 use App\Models\User;
 use App\Services\PosKantin\CanteenTotalAggregationService;
-use App\Services\PosKantin\PosKantinMutationDispatcher;
 use App\Services\PosKantin\SaleCalculationService;
+use App\Services\PosKantin\SaleTransactionSyncService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -54,11 +54,15 @@ class SaleController extends Controller
         StoreSaleRequest $request,
         SaleCalculationService $calculationService,
         CanteenTotalAggregationService $aggregationService,
-        PosKantinMutationDispatcher $dispatcher,
+        SaleTransactionSyncService $transactionSyncService,
     ): RedirectResponse {
         $this->authorize('create', Sale::class);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
 
-        $sale = DB::transaction(function () use ($request, $calculationService, $aggregationService, $dispatcher): Sale {
+        $sale = DB::transaction(function () use ($request, $calculationService, $aggregationService, $transactionSyncService, &$dispatchResult): Sale {
             $supplier = Supplier::query()->findOrFail($request->integer('supplier_id'));
             $sale = Sale::query()->create([
                 'date' => $request->validated()['date'],
@@ -74,17 +78,17 @@ class SaleController extends Controller
 
             $calculationService->syncItems($sale, $supplier, $request->validated()['items']);
             $aggregationService->recalculateForDate($sale->date->format('Y-m-d'));
-            $dispatcher->dispatch('createTransaction', [$this->salePayload($sale->fresh(['supplier', 'user', 'items.food']))], [
-                'entity' => 'sale',
-                'id' => $sale->getKey(),
-            ]);
+            $dispatchResult = $transactionSyncService->syncSale($sale);
 
             return $sale;
         });
 
-        return redirect()
-            ->route('pos-kantin.sales.show', $sale)
-            ->with('status', 'Transaksi berhasil disimpan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.sales.show', $sale)
+                ->with('status', 'Transaksi berhasil disimpan.'),
+            $dispatchResult,
+        );
     }
 
     public function show(Sale $sale): View
@@ -108,13 +112,18 @@ class SaleController extends Controller
         Sale $sale,
         SaleCalculationService $calculationService,
         CanteenTotalAggregationService $aggregationService,
-        PosKantinMutationDispatcher $dispatcher,
+        SaleTransactionSyncService $transactionSyncService,
     ): RedirectResponse {
         $this->authorize('update', $sale);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
 
-        DB::transaction(function () use ($request, $sale, $calculationService, $aggregationService, $dispatcher): void {
+        DB::transaction(function () use ($request, $sale, $calculationService, $aggregationService, $transactionSyncService, &$dispatchResult): void {
             $supplier = Supplier::query()->findOrFail($request->integer('supplier_id'));
             $originalDate = $sale->date->format('Y-m-d');
+            $originalItemIds = $sale->items()->pluck('id')->all();
 
             $sale->fill([
                 'date' => $request->validated()['date'],
@@ -125,39 +134,44 @@ class SaleController extends Controller
             $calculationService->syncItems($sale, $supplier, $request->validated()['items']);
             $aggregationService->recalculateForDate($originalDate);
             $aggregationService->recalculateForDate($sale->date->format('Y-m-d'));
-
-            $dispatcher->dispatch('updateTransaction', [$sale->getKey(), $this->salePayload($sale->fresh(['supplier', 'user', 'items.food']))], [
-                'entity' => 'sale',
-                'id' => $sale->getKey(),
-            ]);
+            $deletedItemIds = array_values(array_diff($originalItemIds, $sale->items()->pluck('id')->all()));
+            $dispatchResult = $transactionSyncService->syncSale($sale, $deletedItemIds);
         });
 
-        return redirect()
-            ->route('pos-kantin.sales.show', $sale)
-            ->with('status', 'Transaksi berhasil diperbarui.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.sales.show', $sale)
+                ->with('status', 'Transaksi berhasil diperbarui.'),
+            $dispatchResult,
+        );
     }
 
     public function destroy(
         Sale $sale,
         CanteenTotalAggregationService $aggregationService,
-        PosKantinMutationDispatcher $dispatcher,
+        SaleTransactionSyncService $transactionSyncService,
     ): RedirectResponse {
         $this->authorize('delete', $sale);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
 
-        DB::transaction(function () use ($sale, $aggregationService, $dispatcher): void {
+        DB::transaction(function () use ($sale, $aggregationService, $transactionSyncService, &$dispatchResult): void {
             $date = $sale->date->format('Y-m-d');
+            $saleItemIds = $sale->items()->pluck('id')->all();
             $sale->items()->get()->each->delete();
             $sale->delete();
             $aggregationService->recalculateForDate($date);
-            $dispatcher->dispatch('deleteTransaction', [$sale->getKey()], [
-                'entity' => 'sale',
-                'id' => $sale->getKey(),
-            ]);
+            $dispatchResult = $transactionSyncService->deleteSaleItems($saleItemIds);
         });
 
-        return redirect()
-            ->route('pos-kantin.sales.index')
-            ->with('status', 'Transaksi berhasil dibatalkan.');
+        return $this->withPosKantinDispatchNotice(
+            redirect()
+                ->route('pos-kantin.sales.index')
+                ->with('status', 'Transaksi berhasil dibatalkan.'),
+            $dispatchResult,
+        );
     }
 
     /**
@@ -191,40 +205,6 @@ class SaleController extends Controller
                 ->whereKeyNot(auth()->id())
                 ->orderBy('name')
                 ->get(),
-        ];
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function salePayload(Sale $sale): array
-    {
-        return [
-            'id' => $sale->getKey(),
-            'date' => $sale->date->format('Y-m-d'),
-            'supplierId' => $sale->supplier_id,
-            'supplierName' => $sale->supplier?->name,
-            'userId' => $sale->user_id,
-            'userName' => $sale->user?->name,
-            'additionalUsers' => $sale->additional_users ?? [],
-            'totalSupplier' => $sale->total_supplier,
-            'totalCanteen' => $sale->total_canteen,
-            'statusI' => $sale->status_i,
-            'statusII' => $sale->status_ii,
-            'takenNote' => $sale->taken_note,
-            'paidAt' => optional($sale->paid_at)->format('Y-m-d'),
-            'paidAmount' => $sale->paid_amount,
-            'items' => $sale->items->map(fn ($item): array => [
-                'id' => $item->getKey(),
-                'foodId' => $item->food_id,
-                'foodName' => $item->food?->name,
-                'unit' => $item->unit,
-                'quantity' => $item->quantity,
-                'leftover' => $item->leftover,
-                'pricePerUnit' => $item->price_per_unit,
-                'totalItem' => $item->total_item,
-                'cutAmount' => $item->cut_amount,
-            ])->all(),
         ];
     }
 }

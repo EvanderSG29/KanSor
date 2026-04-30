@@ -85,6 +85,7 @@ const CONFIG = {
         "created_at",
         "updated_at",
         "deleted_at",
+        "food_id",
       ],
     },
     savings: {
@@ -155,6 +156,20 @@ const CONFIG = {
         "commission_base_type",
         "payout_term_days",
         "notes",
+        "is_active",
+        "created_at",
+        "updated_at",
+      ],
+    },
+    foods: {
+      name: "foods",
+      headers: [
+        "id",
+        "supplier_id",
+        "supplier_name_snapshot",
+        "food_name",
+        "unit_name",
+        "default_price",
         "is_active",
         "created_at",
         "updated_at",

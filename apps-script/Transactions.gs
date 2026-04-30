@@ -9,6 +9,7 @@ function sanitizeTransaction_(record) {
     inputByName: record.input_by_name,
     supplierId: record.supplier_id,
     supplierName: record.supplier_name,
+    foodId: record.food_id || "",
     itemName: record.item_name,
     unitName: record.unit_name,
     quantity: toNumber_(record.quantity),
@@ -171,14 +172,51 @@ function saveTransactionAction_(payload, token) {
     throw new Error("Pemasok nonaktif tidak bisa dipakai untuk transaksi baru.");
   }
 
-  if (!payload.transactionDate || !payload.itemName || !payload.unitName) {
+  if (!payload.foodId) {
+    throw new Error("Makanan wajib dipilih dari master makanan.");
+  }
+
+  var foodRecord = getRecordById_("foods", payload.foodId);
+  if (!foodRecord) {
+    throw new Error("Makanan tidak ditemukan.");
+  }
+
+  if (String(foodRecord.supplier_id) !== String(supplierRecord.id)) {
+    throw new Error("Makanan harus milik pemasok yang dipilih.");
+  }
+
+  if (String(foodRecord.is_active) === "false" && (!existing || String(existing.food_id || "") !== String(foodRecord.id))) {
+    throw new Error("Makanan nonaktif tidak bisa dipakai untuk transaksi baru.");
+  }
+
+  var inputUserId = String(payload.inputByUserId || "").trim();
+  var inputUserName = String(payload.inputByName || "").trim();
+  var inputUserRecord = inputUserId ? getRecordById_("users", inputUserId) : null;
+
+  if (inputUserId && !inputUserRecord) {
+    throw new Error("User input transaksi tidak ditemukan.");
+  }
+
+  if (inputUserRecord && String(inputUserRecord.status) !== "aktif" && !existing) {
+    throw new Error("User input transaksi tidak aktif.");
+  }
+
+  var itemName = String(payload.itemName || foodRecord.food_name || "").trim();
+  var unitName = String(payload.unitName || foodRecord.unit_name || "").trim();
+
+  if (!payload.transactionDate || !itemName || !unitName) {
     throw new Error("Tanggal, pemasok, makanan, dan satuan wajib diisi.");
   }
 
   var quantity = parseNonNegativeNumberStrict_(payload.quantity, "Jumlah titip");
-  var remainingQuantity = parseNonNegativeNumberStrict_(payload.remainingQuantity, "Sisa");
+  var remainingQuantity = parseNonNegativeNumberStrict_(
+    payload.remainingQuantity === "" || payload.remainingQuantity === null || payload.remainingQuantity === undefined ? 0 : payload.remainingQuantity,
+    "Sisa"
+  );
   var unitPrice = parseNonNegativeNumberStrict_(payload.unitPrice, "Harga jual");
-  var costPrice = parseNonNegativeNumberStrict_(payload.costPrice, "Harga modal");
+  var costPrice = payload.costPrice === "" || payload.costPrice === null || payload.costPrice === undefined
+    ? 0
+    : parseNonNegativeNumberStrict_(payload.costPrice, "Harga modal");
 
   if (remainingQuantity > quantity) {
     throw new Error("Sisa tidak boleh lebih besar dari jumlah titip.");
@@ -195,20 +233,51 @@ function saveTransactionAction_(payload, token) {
     transactionDate: payload.transactionDate,
   });
 
+  if (payload.soldQuantity !== undefined && payload.soldQuantity !== null && payload.soldQuantity !== "") {
+    metrics.soldQuantity = parseNonNegativeNumberStrict_(payload.soldQuantity, "Jumlah terjual");
+  }
+
+  if (payload.grossSales !== undefined && payload.grossSales !== null && payload.grossSales !== "") {
+    metrics.grossSales = parseNonNegativeNumberStrict_(payload.grossSales, "Omzet kotor");
+  }
+
+  if (payload.totalValue !== undefined && payload.totalValue !== null && payload.totalValue !== "") {
+    metrics.totalValue = parseNonNegativeNumberStrict_(payload.totalValue, "Total transaksi");
+  } else {
+    metrics.totalValue = metrics.grossSales;
+  }
+
+  if (payload.profitAmount !== undefined && payload.profitAmount !== null && payload.profitAmount !== "") {
+    metrics.profitAmount = parseNonNegativeNumberStrict_(payload.profitAmount, "Profit");
+  }
+
+  if (payload.commissionAmount !== undefined && payload.commissionAmount !== null && payload.commissionAmount !== "") {
+    metrics.commissionAmount = parseNonNegativeNumberStrict_(payload.commissionAmount, "Potongan");
+  }
+
+  if (payload.supplierNetAmount !== undefined && payload.supplierNetAmount !== null && payload.supplierNetAmount !== "") {
+    metrics.supplierNetAmount = parseNonNegativeNumberStrict_(payload.supplierNetAmount, "Total pemasok");
+  } else {
+    metrics.supplierNetAmount = metrics.grossSales - metrics.commissionAmount;
+  }
+
   var record = existing || {
     id: payload.id || generateId_("TRX"),
     created_at: now,
-    input_by_user_id: context.user.id,
-    input_by_name: context.user.full_name,
+    input_by_user_id: inputUserRecord ? inputUserRecord.id : context.user.id,
+    input_by_name: inputUserName || (inputUserRecord ? inputUserRecord.full_name : context.user.full_name),
     supplier_payout_id: "",
     deleted_at: "",
   };
 
   record.transaction_date = payload.transactionDate;
+  record.input_by_user_id = inputUserRecord ? inputUserRecord.id : record.input_by_user_id || context.user.id;
+  record.input_by_name = inputUserName || (inputUserRecord ? inputUserRecord.full_name : record.input_by_name || context.user.full_name);
   record.supplier_id = supplierRecord.id;
   record.supplier_name = supplierRecord.supplier_name;
-  record.item_name = String(payload.itemName).trim();
-  record.unit_name = String(payload.unitName).trim();
+  record.food_id = foodRecord.id;
+  record.item_name = itemName;
+  record.unit_name = unitName;
   record.quantity = metrics.quantity;
   record.remaining_quantity = metrics.remainingQuantity;
   record.sold_quantity = metrics.soldQuantity;

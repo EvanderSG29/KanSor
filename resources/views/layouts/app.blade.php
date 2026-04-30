@@ -4,10 +4,112 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta
+        http-equiv="Content-Security-Policy"
+        content="
+            default-src 'self';
+            base-uri 'self';
+            object-src 'none';
+            form-action 'self';
+            script-src 'self' 'unsafe-inline';
+            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+            font-src 'self' https://fonts.gstatic.com data:;
+            img-src 'self' data: https:;
+            connect-src 'self' http://127.0.0.1:8100 http://localhost:8000 http://127.0.0.1:8000 http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173;
+            frame-src 'self' https://github.com https://*.github.com;
+        "
+    >
+
+    @php
+        $kanSorAppShell = [
+            'setupRunUrl' => app()->environment('local') ? route('setup.run-migrations') : null,
+            'setupStatusUrl' => app()->environment('local') ? route('setup.status') : null,
+            'hasPendingMigrations' => app(\App\Services\Setup\SchemaReadinessService::class)->hasPendingMigrations(),
+            'isNativeDesktop' => (bool) config('nativephp-internal.running'),
+        ];
+    @endphp
 
     <title>{{ trim($__env->yieldContent('title')) ? trim($__env->yieldContent('title')).' | ' : '' }}{{ config('app.name', 'KanSor') }}</title>
 
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    <script>
+        window.KanSorAppShell = {{ \Illuminate\Support\Js::from($kanSorAppShell) }};
+    </script>
+    <style>
+        .kansor-shell-nav .btn[disabled] {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .kansor-loading-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            background: rgba(15, 23, 42, 0.72);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.18s ease;
+        }
+
+        .kansor-loading-overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .kansor-loading-overlay__card {
+            width: min(100%, 26rem);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: linear-gradient(160deg, #0f172a 0%, #182230 100%);
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.4);
+            color: #e2e8f0;
+            text-align: center;
+        }
+
+        .kansor-loading-overlay__logo {
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto 1rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            color: #f8fafc;
+            font-size: 1.6rem;
+            animation: kansor-shell-spin 1s linear infinite;
+        }
+
+        .kansor-loading-overlay__title {
+            margin-bottom: 0.35rem;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .kansor-loading-overlay__message {
+            margin: 0;
+            color: #cbd5e1;
+        }
+
+        body.kansor-shell-busy {
+            cursor: progress;
+        }
+
+        @keyframes kansor-shell-spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
     @auth
         @if (config('nativephp-internal.running'))
             @php
@@ -156,6 +258,19 @@
                         </li>
                         <li class="nav-item d-none d-lg-inline-block">
                             <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link">Laporan</a>
+                        </li>
+                        <li class="nav-item d-none d-md-flex align-items-center ml-2">
+                            <div class="btn-group btn-group-sm kansor-shell-nav" role="group" aria-label="Navigasi pengembangan">
+                                <button type="button" class="btn btn-outline-secondary" data-app-shell-back disabled title="Kembali">
+                                    <i class="fas fa-arrow-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-app-shell-forward disabled title="Maju">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-app-shell-refresh title="Refresh halaman">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </div>
                         </li>
                     @endauth
                 </ul>
@@ -322,8 +437,16 @@
                                         <i class="nav-icon fas fa-sync-alt"></i>
                                         <p>
                                             Sinkronisasi
-                                            @if (($kanSorSyncNavigationStatus['pendingCount'] ?? 0) > 0 || ($kanSorSyncNavigationStatus['conflictCount'] ?? 0) > 0)
-                                                <span class="right badge badge-warning">{{ ($kanSorSyncNavigationStatus['pendingCount'] ?? 0) + ($kanSorSyncNavigationStatus['conflictCount'] ?? 0) }}</span>
+                                            @php
+                                                $syncQueuedCount = (int) ($kanSorSyncNavigationStatus['queuedCount'] ?? $kanSorSyncNavigationStatus['pendingCount'] ?? 0);
+                                                $syncFailedCount = (int) ($kanSorSyncNavigationStatus['failedCount'] ?? 0);
+                                                $syncConflictCount = (int) ($kanSorSyncNavigationStatus['conflictCount'] ?? 0);
+                                                $syncAttentionCount = $syncFailedCount + $syncConflictCount;
+                                            @endphp
+                                            @if ($syncAttentionCount > 0)
+                                                <span class="right badge badge-danger">{{ $syncAttentionCount }}</span>
+                                            @elseif ($syncQueuedCount > 0)
+                                                <span class="right badge badge-warning">{{ $syncQueuedCount }}</span>
                                             @endif
                                         </p>
                                     </a>
@@ -431,6 +554,16 @@
             @endauth
         </div>
     @endif
+
+    <div class="kansor-loading-overlay" data-app-shell-overlay aria-hidden="true">
+        <div class="kansor-loading-overlay__card" role="status" aria-live="polite">
+            <div class="kansor-loading-overlay__logo">
+                <i class="fas fa-store"></i>
+            </div>
+            <div class="kansor-loading-overlay__title">{{ config('app.name', 'KanSor') }}</div>
+            <p class="kansor-loading-overlay__message" data-app-shell-message>Sistem sedang memproses...</p>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>
