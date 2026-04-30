@@ -31,6 +31,7 @@ function userSyncAdmin(): User
 
 test('creating user sends apps script compatible save user payload', function () {
     Http::fake([
+        'api.pwnedpasswords.com/*' => Http::response('', 200),
         'https://example.test/*' => function (Request $request) {
             return match ($request['action'] ?? null) {
                 'login' => Http::response([
@@ -58,8 +59,8 @@ test('creating user sends apps script compatible save user payload', function ()
         ->post(route('pos-kantin.admin.users.store'), [
             'name' => 'Petugas Baru',
             'email' => 'petugas-baru@example.com',
-            'password' => 'rahasia123',
-            'password_confirmation' => 'rahasia123',
+            'password' => 'KanSor!Pass123',
+            'password_confirmation' => 'KanSor!Pass123',
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
@@ -75,7 +76,7 @@ test('creating user sends apps script compatible save user payload', function ()
             && ($request['payload']->status ?? null) === User::STATUS_ACTIVE
             && ($request['payload']->classGroup ?? null) === ''
             && ($request['payload']->notes ?? null) === ''
-            && ($request['payload']->password ?? null) === 'rahasia123';
+            && ($request['payload']->password ?? null) === 'KanSor!Pass123';
     });
 });
 

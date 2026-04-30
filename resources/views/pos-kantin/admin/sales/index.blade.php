@@ -1,55 +1,51 @@
 @extends('layouts.app')
 
 @section('title', 'Konfirmasi Admin')
+@section('page_header')
+    <x-pos.page-header title="Konfirmasi Admin" subtitle="Pantau transaksi yang menunggu tindak lanjut pembayaran pemasok dan setoran kantin.">
+        <x-slot:actions>
+            <a href="{{ route('pos-kantin.sales.create') }}" class="btn btn-outline-primary btn-sm">Input transaksi</a>
+        </x-slot:actions>
+    </x-pos.page-header>
+@endsection
 
 @section('content')
 @include('pos-kantin.partials.alerts')
 <div class="card card-outline card-primary">
     <div class="card-header"><h3 class="card-title mb-0">Daftar transaksi untuk admin</h3></div>
-    <div class="card-body">
-        <form method="GET" class="row">
+    <x-pos.filter-card :action="route('pos-kantin.admin.sales.index')" :reset-url="route('pos-kantin.admin.sales.index')" title="Filter transaksi admin" card-class="border-0 shadow-none mb-0">
             <div class="col-md-3">
-                <label>Dari</label>
-                <input type="date" name="from" class="form-control" value="{{ $filters['from'] ?? '' }}">
+                <x-form.input name="from" label="Dari" type="date" :value="$filters['from'] ?? ''" />
             </div>
             <div class="col-md-3">
-                <label>Sampai</label>
-                <input type="date" name="to" class="form-control" value="{{ $filters['to'] ?? '' }}">
+                <x-form.input name="to" label="Sampai" type="date" :value="$filters['to'] ?? ''" />
             </div>
             <div class="col-md-2">
-                <label>Pemasok</label>
-                <select name="supplier_id" class="form-control">
+                <x-form.select name="supplier_id" label="Pemasok">
                     <option value="">Semua</option>
                     @foreach ($suppliers as $supplier)
                         <option value="{{ $supplier->id }}" @selected((string) ($filters['supplier_id'] ?? '') === (string) $supplier->id)>{{ $supplier->name }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
             </div>
             <div class="col-md-2">
-                <label>Status Pembayaran Pemasok</label>
-                <select name="status_i" class="form-control">
+                <x-form.select name="status_i" label="Status Pembayaran Pemasok">
                     <option value="">Semua</option>
                     <option value="menunggu" @selected(($filters['status_i'] ?? '') === 'menunggu')>Menunggu</option>
                     <option value="dibayar" @selected(($filters['status_i'] ?? '') === 'dibayar')>Dibayar</option>
-                </select>
+                </x-form.select>
             </div>
             <div class="col-md-2">
-                <label>Status Setoran Kantin</label>
-                <select name="status_ii" class="form-control">
+                <x-form.select name="status_ii" label="Status Setoran Kantin">
                     <option value="">Semua</option>
                     <option value="menunggu" @selected(($filters['status_ii'] ?? '') === 'menunggu')>Menunggu</option>
                     <option value="disetor" @selected(($filters['status_ii'] ?? '') === 'disetor')>Disetor</option>
-                </select>
+                </x-form.select>
             </div>
-            <div class="col-12 mt-3">
-                <button class="btn btn-outline-primary mr-2">Filter</button>
-                <a href="{{ route('pos-kantin.admin.sales.index') }}" class="btn btn-outline-secondary">Reset</a>
-            </div>
-        </form>
-    </div>
+    </x-pos.filter-card>
     <div class="card-body table-responsive p-0">
-        <table class="table table-hover">
-            <thead>
+        <x-pos.data-table :empty="$sales->isEmpty()" :colspan="8" empty-title="Belum ada transaksi untuk admin" empty-message="Transaksi yang memerlukan tindak lanjut akan tampil di sini setelah petugas menyimpannya.">
+            <x-slot:head>
                 <tr>
                     <th>Tanggal</th>
                     <th>Pemasok</th>
@@ -60,27 +56,23 @@
                     <th>Status Setoran Kantin</th>
                     <th class="text-right">Aksi</th>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse ($sales as $sale)
-                    <tr>
-                        <td>{{ $sale->date->format('d/m/Y') }}</td>
-                        <td>{{ $sale->supplier?->name ?? '-' }}</td>
-                        <td>{{ $sale->user?->name ?? '-' }}</td>
-                        <td>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</td>
-                        <td>{{ ucfirst($sale->status_i) }}</td>
-                        <td>{{ ucfirst($sale->status_ii) }}</td>
-                        <td class="text-right">
-                            <a href="{{ route('pos-kantin.admin.sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
-                            <a href="{{ route('pos-kantin.admin.sales.edit', $sale) }}" class="btn btn-sm btn-outline-primary">Koreksi</a>
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="8" class="text-center text-muted py-4">Belum ada transaksi.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+            </x-slot:head>
+            @foreach ($sales as $sale)
+                <tr>
+                    <td>{{ $sale->date->format('d/m/Y') }}</td>
+                    <td>{{ $sale->supplier?->name ?? '-' }}</td>
+                    <td>{{ $sale->user?->name ?? '-' }}</td>
+                    <td>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</td>
+                    <td><x-pos.status-badge :status="$sale->status_i" context="supplier-payment" /></td>
+                    <td><x-pos.status-badge :status="$sale->status_ii" context="canteen-deposit" /></td>
+                    <td class="text-right">
+                        <a href="{{ route('pos-kantin.admin.sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
+                        <a href="{{ route('pos-kantin.admin.sales.edit', $sale) }}" class="btn btn-sm btn-outline-primary">Koreksi</a>
+                    </td>
+                </tr>
+            @endforeach
+        </x-pos.data-table>
     </div>
     <div class="card-footer">{{ $sales->links() }}</div>
 </div>

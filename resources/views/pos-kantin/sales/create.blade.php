@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Input Transaksi Harian')
+@section('page_subtitle', 'Catat transaksi harian dengan ringkasan otomatis sebelum disimpan.')
 
 @section('content')
 @include('pos-kantin.partials.alerts')

@@ -78,7 +78,8 @@ class StoreSaleRequest extends FormRequest
                     ->where('role', User::ROLE_PETUGAS)
                     ->where('active', true)),
             ],
-            'items' => ['required', 'array', 'min:1'],
+            'items' => ['required', 'array', 'list', 'min:1'],
+            'items.*' => ['required', 'array:id,food_id,unit,quantity,leftover,price_per_unit'],
             'items.*.id' => ['nullable', 'integer'],
             'items.*.food_id' => ['required', 'integer'],
             'items.*.unit' => ['required', 'string', 'max:50'],
@@ -112,6 +113,13 @@ class StoreSaleRequest extends FormRequest
 
                     if (! $foods->has($foodId)) {
                         $validator->errors()->add("items.$index.food_id", 'Makanan harus aktif dan milik pemasok yang dipilih.');
+                    }
+
+                    $quantity = (int) ($item['quantity'] ?? 0);
+                    $leftover = $item['leftover'] ?? null;
+
+                    if ($leftover !== null && (int) $leftover > $quantity) {
+                        $validator->errors()->add("items.$index.leftover", 'Sisa tidak boleh lebih besar dari qty.');
                     }
                 }
 

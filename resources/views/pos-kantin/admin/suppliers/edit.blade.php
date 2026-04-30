@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Pemasok')
+@section('page_header')
+    <x-pos.page-header title="Edit Pemasok" subtitle="Ubah detail pemasok tanpa mengganggu histori transaksi yang sudah ada.">
+        <x-slot:actions>
+            <a href="{{ route('pos-kantin.admin.suppliers.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        </x-slot:actions>
+    </x-pos.page-header>
+@endsection
 
 @section('content')
 @include('pos-kantin.partials.alerts')
@@ -12,7 +19,6 @@
         <div class="card-body">@include('pos-kantin.admin.suppliers._form')</div>
         <div class="card-footer">
             <button class="btn btn-primary">Perbarui</button>
-            <a href="{{ route('pos-kantin.admin.suppliers.index') }}" class="btn btn-outline-secondary">Kembali</a>
         </div>
     </form>
 </div>

@@ -1,42 +1,39 @@
 @extends('layouts.app')
 
 @section('title', 'Riwayat Transaksi')
+@section('page_header')
+    <x-pos.page-header title="Riwayat Transaksi" subtitle="Lihat transaksi harian, filter periode, dan buka detail tanpa berpindah ke tampilan teknis.">
+        <x-slot:actions>
+            <a href="{{ route('pos-kantin.sales.create') }}" class="btn btn-primary btn-sm">Input transaksi</a>
+        </x-slot:actions>
+    </x-pos.page-header>
+@endsection
 
 @section('content')
 @include('pos-kantin.partials.alerts')
 <div class="card card-outline card-primary">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header">
         <h3 class="card-title mb-0">Daftar transaksi</h3>
-        <a href="{{ route('pos-kantin.sales.create') }}" class="btn btn-primary btn-sm">Input transaksi</a>
     </div>
-    <div class="card-body">
-        <form method="GET" class="row">
+    <x-pos.filter-card :action="route('pos-kantin.sales.index')" :reset-url="route('pos-kantin.sales.index')" title="Filter transaksi" card-class="border-0 shadow-none mb-0">
             <div class="col-md-4">
-                <label>Pemasok</label>
-                <select name="supplier_id" class="form-control">
+                <x-form.select name="supplier_id" label="Pemasok">
                     <option value="">Semua</option>
                     @foreach ($suppliers as $supplier)
                         <option value="{{ $supplier->id }}" @selected((string) ($filters['supplier_id'] ?? '') === (string) $supplier->id)>{{ $supplier->name }}</option>
                     @endforeach
-                </select>
+                </x-form.select>
             </div>
             <div class="col-md-3">
-                <label>Dari</label>
-                <input type="date" name="from" class="form-control" value="{{ $filters['from'] ?? '' }}">
+                <x-form.input name="from" label="Dari" type="date" :value="$filters['from'] ?? ''" />
             </div>
             <div class="col-md-3">
-                <label>Sampai</label>
-                <input type="date" name="to" class="form-control" value="{{ $filters['to'] ?? '' }}">
+                <x-form.input name="to" label="Sampai" type="date" :value="$filters['to'] ?? ''" />
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <button class="btn btn-outline-primary mr-2">Filter</button>
-                <a href="{{ route('pos-kantin.sales.index') }}" class="btn btn-outline-secondary">Reset</a>
-            </div>
-        </form>
-    </div>
+    </x-pos.filter-card>
     <div class="card-body table-responsive p-0">
-        <table class="table table-hover">
-            <thead>
+        <x-pos.data-table :empty="$sales->isEmpty()" :colspan="7" empty-title="Belum ada transaksi" empty-message="Mulai dari input transaksi baru agar riwayat operasional harian segera terisi.">
+            <x-slot:head>
                 <tr>
                     <th>Tanggal</th>
                     <th>Pemasok</th>
@@ -46,32 +43,34 @@
                     <th>Status</th>
                     <th class="text-right">Aksi</th>
                 </tr>
-            </thead>
-            <tbody>
-                @forelse ($sales as $sale)
-                    <tr>
-                        <td>{{ $sale->date->format('d/m/Y') }}</td>
-                        <td>{{ $sale->supplier?->name ?? '-' }}</td>
-                        <td>{{ $sale->user?->name ?? '-' }}</td>
-                        <td>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</td>
-                        <td>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</td>
-                        <td>
-                            <span class="badge badge-{{ $sale->isLocked() ? 'success' : 'warning' }}">
-                                {{ strtoupper($sale->status_i) }} / {{ strtoupper($sale->status_ii) }}
-                            </span>
-                        </td>
-                        <td class="text-right">
-                            <a href="{{ route('pos-kantin.sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
-                            @can('update', $sale)
-                                <a href="{{ route('pos-kantin.sales.edit', $sale) }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                            @endcan
-                        </td>
-                    </tr>
-                @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada transaksi.</td></tr>
-                @endforelse
-            </tbody>
-        </table>
+            </x-slot:head>
+            @foreach ($sales as $sale)
+                <tr>
+                    <td>{{ $sale->date->format('d/m/Y') }}</td>
+                    <td>{{ $sale->supplier?->name ?? '-' }}</td>
+                    <td>{{ $sale->user?->name ?? '-' }}</td>
+                    <td>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</td>
+                    <td>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</td>
+                    <td>
+                        <x-pos.status-badge
+                            :status="$sale->status_i"
+                            context="supplier-payment"
+                            class="mr-1"
+                        />
+                        <x-pos.status-badge
+                            :status="$sale->status_ii"
+                            context="canteen-deposit"
+                        />
+                    </td>
+                    <td class="text-right">
+                        <a href="{{ route('pos-kantin.sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
+                        @can('update', $sale)
+                            <a href="{{ route('pos-kantin.sales.edit', $sale) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        @endcan
+                    </td>
+                </tr>
+            @endforeach
+        </x-pos.data-table>
     </div>
     <div class="card-footer">{{ $sales->links() }}</div>
 </div>

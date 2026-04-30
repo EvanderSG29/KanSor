@@ -29,6 +29,14 @@ class SaleFactory extends Factory
             'taken_note' => null,
             'paid_at' => null,
             'paid_amount' => null,
+            'supplier_paid_at' => null,
+            'supplier_paid_amount' => null,
+            'supplier_payment_note' => null,
+            'supplier_payment_confirmed_by' => null,
+            'canteen_deposited_at' => null,
+            'canteen_deposited_amount' => null,
+            'canteen_deposit_note' => null,
+            'canteen_deposit_confirmed_by' => null,
         ];
     }
 }

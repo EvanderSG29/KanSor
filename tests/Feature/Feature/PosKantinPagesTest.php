@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\PosKantinSyncConflict;
+use App\Models\PosKantinSyncOutbox;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -286,6 +288,92 @@ test('users page shows local mirrored user data', function () {
         ->assertSuccessful()
         ->assertSee('Data pengguna server')
         ->assertSee('Evander Smid Gidiin');
+});
+
+test('sync page shows conflict comparison details and confirmation copy', function () {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => 'admin',
+        'status' => 'aktif',
+        'active' => true,
+    ]);
+
+    PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '55555555-5555-5555-5555-555555555555',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-005',
+        'payload' => [
+            'id' => 'SUP-005',
+            'supplierName' => 'Supplier Lokal',
+            'updatedAt' => '2026-04-29T07:45:00.000Z',
+        ],
+        'expected_updated_at' => '2026-04-29T07:45:00.000Z',
+        'status' => 'conflict',
+        'last_error' => 'Perubahan lokal bentrok dengan data server.',
+        'server_snapshot' => [
+            'id' => 'SUP-005',
+            'supplierName' => 'Supplier Server',
+            'updatedAt' => '2026-04-29T08:00:00.000Z',
+        ],
+    ]);
+
+    PosKantinSyncConflict::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'outbox_id' => PosKantinSyncOutbox::query()
+            ->where('client_mutation_id', '55555555-5555-5555-5555-555555555555')
+            ->value('id'),
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-005',
+        'local_payload' => [
+            'id' => 'SUP-005',
+            'supplierName' => 'Supplier Lokal',
+            'updatedAt' => '2026-04-29T07:45:00.000Z',
+        ],
+        'server_payload' => [
+            'id' => 'SUP-005',
+            'supplierName' => 'Supplier Server',
+            'updatedAt' => '2026-04-29T08:00:00.000Z',
+        ],
+        'resolution_status' => 'unresolved',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('pos-kantin.sync.index'))
+        ->assertSuccessful()
+        ->assertSee('Konflik sinkronisasi')
+        ->assertSee('Field Berbeda')
+        ->assertSee('supplierName')
+        ->assertSee('Supplier Lokal')
+        ->assertSee('Supplier Server')
+        ->assertSee('Pakai server')
+        ->assertSee('Kirim ulang lokal')
+        ->assertSee('Anda akan mengganti data lokal dengan versi server.')
+        ->assertSee('Anda akan mengirim ulang data lokal ke server.');
+});
+
+test('production layout hides native debug drawer and desktop config', function () {
+    config([
+        'app.env' => 'production',
+        'nativephp-internal.running' => true,
+    ]);
+
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => User::ROLE_ADMIN,
+        'status' => User::STATUS_ACTIVE,
+        'active' => true,
+    ]);
+
+    seedLocalPosKantinData($user);
+
+    $this->actingAs($user)
+        ->get('/home')
+        ->assertSuccessful()
+        ->assertDontSee('window.KanSorNativeDesktop', false)
+        ->assertDontSee('Fruitcake Laravel Debugbar')
+        ->assertDontSee('Ctrl+Shift+D lalu F');
 });
 
 test('user data stays isolated per local account scope', function () {

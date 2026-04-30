@@ -1,39 +1,38 @@
 <div class="row">
     <div class="col-md-6">
-        <div class="form-group">
-            <label>Pemasok</label>
-            <select name="supplier_id" class="form-control" required>
+        <x-form.select name="supplier_id" label="Pemasok" required>
                 @foreach ($suppliers as $supplier)
                     <option value="{{ $supplier->id }}" @selected((string) old('supplier_id', $food->supplier_id ?? '') === (string) $supplier->id)>{{ $supplier->name }}</option>
                 @endforeach
-            </select>
-        </div>
+        </x-form.select>
     </div>
     <div class="col-md-6">
-        <div class="form-group">
-            <label>Nama makanan</label>
-            <input type="text" name="name" class="form-control" value="{{ old('name', $food->name ?? '') }}" required>
-        </div>
+        <x-form.input
+            name="name"
+            label="Nama makanan"
+            :value="$food->name ?? ''"
+            required
+        />
     </div>
     <div class="col-md-4">
-        <div class="form-group">
-            <label>Satuan</label>
-            <input type="text" name="unit" class="form-control" value="{{ old('unit', $food->unit ?? '') }}" required>
-        </div>
+        <x-form.input
+            name="unit"
+            label="Satuan"
+            :value="$food->unit ?? ''"
+            required
+        />
     </div>
     <div class="col-md-4">
-        <div class="form-group">
-            <label>Harga default</label>
-            <input type="text" name="default_price" class="form-control" value="{{ old('default_price', $food->default_price ?? '') }}">
-        </div>
+        <x-form.money
+            name="default_price"
+            label="Harga default"
+            :value="$food->default_price ?? ''"
+        />
     </div>
     <div class="col-md-4">
-        <div class="form-group">
-            <label>Status aktif</label>
-            <select name="active" class="form-control">
+        <x-form.select name="active" label="Status aktif">
                 <option value="1" @selected((string) old('active', isset($food) ? (int) $food->active : 1) === '1')>Aktif</option>
                 <option value="0" @selected((string) old('active', isset($food) ? (int) $food->active : 1) === '0')>Nonaktif</option>
-            </select>
-        </div>
+        </x-form.select>
     </div>
 </div>

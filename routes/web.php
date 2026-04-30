@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NativeDesktopController;
+use App\Http\Controllers\PosKantin\Admin\AuditLogController as AdminAuditLogController;
 use App\Http\Controllers\PosKantin\Admin\CanteenTotalController as AdminCanteenTotalController;
 use App\Http\Controllers\PosKantin\Admin\FoodController as AdminFoodController;
 use App\Http\Controllers\PosKantin\Admin\SaleController as AdminSaleController;
@@ -49,13 +50,16 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
         Route::get('/pengguna', [UserController::class, 'index'])->name('users.index');
         Route::get('/sinkronisasi', [SyncController::class, 'index'])->name('sync.index');
         Route::get('/sinkronisasi/status', [SyncController::class, 'status'])->name('sync.status');
-        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])->name('sync.auto');
+        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])
+            ->middleware('throttle:sync-auto')
+            ->name('sync.auto');
         Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name('sync.run');
         Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
 
         Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
+            Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
             Route::resource('users', AdminUserController::class)->except('show');
             Route::resource('suppliers', AdminSupplierController::class)->except('show');
             Route::resource('foods', AdminFoodController::class)->except('show');

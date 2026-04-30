@@ -96,7 +96,13 @@ class SaleController extends Controller
         $this->authorize('view', $sale);
 
         return view('pos-kantin.sales.show', [
-            'sale' => $sale->load(['supplier', 'user', 'items.food']),
+            'sale' => $sale->load([
+                'supplier',
+                'user',
+                'items.food',
+                'supplierPaymentConfirmedBy',
+                'canteenDepositConfirmedBy',
+            ]),
         ]);
     }
 

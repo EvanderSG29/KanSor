@@ -33,6 +33,14 @@ class Sale extends Model
         'taken_note',
         'paid_at',
         'paid_amount',
+        'supplier_paid_at',
+        'supplier_paid_amount',
+        'supplier_payment_note',
+        'supplier_payment_confirmed_by',
+        'canteen_deposited_at',
+        'canteen_deposited_amount',
+        'canteen_deposit_note',
+        'canteen_deposit_confirmed_by',
     ];
 
     protected function casts(): array
@@ -44,6 +52,10 @@ class Sale extends Model
             'total_canteen' => 'integer',
             'paid_at' => 'date',
             'paid_amount' => 'integer',
+            'supplier_paid_at' => 'date',
+            'supplier_paid_amount' => 'integer',
+            'canteen_deposited_at' => 'date',
+            'canteen_deposited_amount' => 'integer',
         ];
     }
 
@@ -55,6 +67,16 @@ class Sale extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function supplierPaymentConfirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'supplier_payment_confirmed_by');
+    }
+
+    public function canteenDepositConfirmedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'canteen_deposit_confirmed_by');
     }
 
     public function items(): HasMany

@@ -8,6 +8,8 @@ use App\Models\PosKantinSyncConflict;
 use App\Models\PosKantinSyncOutbox;
 use App\Models\PosKantinSyncRun;
 use App\Models\User;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -22,6 +24,23 @@ class PosKantinSyncService
      * @return array<string, mixed>
      */
     public function sync(User $user, string $trigger = 'manual'): array
+    {
+        try {
+            return Cache::lock($this->lockKeyForUser($user), 120)
+                ->block(3, fn (): array => $this->performSync($user, $trigger));
+        } catch (LockTimeoutException) {
+            return [
+                'ok' => false,
+                'message' => 'Sinkronisasi untuk akun ini sedang berjalan. Tunggu beberapa detik lalu coba lagi.',
+                'category' => 'locked',
+            ];
+        }
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function performSync(User $user, string $trigger): array
     {
         $run = PosKantinSyncRun::query()->create([
             'scope_owner_user_id' => $user->getKey(),
@@ -64,6 +83,11 @@ class PosKantinSyncService
         }
     }
 
+    protected function lockKeyForUser(User $user): string
+    {
+        return 'pos-sync:user:'.$user->getKey();
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -104,14 +128,24 @@ class PosKantinSyncService
             ->latest()
             ->get()
             ->map(function (PosKantinSyncConflict $conflict): array {
+                $localPayload = is_array($conflict->local_payload) ? $conflict->local_payload : [];
+                $serverPayload = is_array($conflict->server_payload) ? $conflict->server_payload : [];
+                $fieldDiffs = $this->buildConflictFieldDiffs($localPayload, $serverPayload);
+
                 return [
                     'id' => $conflict->getKey(),
                     'entityType' => $conflict->entity_type,
+                    'entityLabel' => Str::headline($conflict->entity_type),
                     'entityRemoteId' => $conflict->entity_remote_id,
-                    'localPayload' => $conflict->local_payload,
-                    'serverPayload' => $conflict->server_payload,
+                    'localPayload' => $localPayload,
+                    'serverPayload' => $serverPayload,
                     'outboxId' => $conflict->outbox_id,
                     'createdAt' => optional($conflict->created_at)->toIso8601String(),
+                    'localUpdatedAt' => $this->resolveLocalConflictTimestamp($conflict, $localPayload),
+                    'serverUpdatedAt' => $this->resolveServerConflictTimestamp($conflict, $serverPayload),
+                    'lastError' => $conflict->outbox?->last_error,
+                    'fieldDiffs' => $fieldDiffs,
+                    'hasComparisonContext' => $fieldDiffs !== [],
                 ];
             })
             ->all();
@@ -421,5 +455,120 @@ class PosKantinSyncService
         }
 
         $user->fill($updates)->save();
+    }
+
+    /**
+     * @param  array<string, mixed>  $localPayload
+     * @param  array<string, mixed>  $serverPayload
+     * @return array<int, array{field: string, localValue: string, serverValue: string}>
+     */
+    protected function buildConflictFieldDiffs(array $localPayload, array $serverPayload): array
+    {
+        $keys = array_values(array_unique([
+            ...array_keys($localPayload),
+            ...array_keys($serverPayload),
+        ]));
+
+        return collect($keys)
+            ->reject(fn (string $key): bool => $key === 'createdAt')
+            ->filter(fn (string $key): bool => $this->valuesDiffer(
+                $localPayload[$key] ?? null,
+                $serverPayload[$key] ?? null,
+            ))
+            ->map(fn (string $key): array => [
+                'field' => $key,
+                'localValue' => $this->formatConflictValue($localPayload[$key] ?? null),
+                'serverValue' => $this->formatConflictValue($serverPayload[$key] ?? null),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $localPayload
+     */
+    protected function resolveLocalConflictTimestamp(PosKantinSyncConflict $conflict, array $localPayload): ?string
+    {
+        $payloadTimestamp = $this->stringValue($localPayload['updatedAt'] ?? null);
+
+        if ($payloadTimestamp !== null) {
+            return $payloadTimestamp;
+        }
+
+        if ($conflict->outbox?->expected_updated_at !== null) {
+            return $conflict->outbox->expected_updated_at;
+        }
+
+        return optional($conflict->created_at)->toIso8601String();
+    }
+
+    /**
+     * @param  array<string, mixed>  $serverPayload
+     */
+    protected function resolveServerConflictTimestamp(PosKantinSyncConflict $conflict, array $serverPayload): ?string
+    {
+        $payloadTimestamp = $this->stringValue($serverPayload['updatedAt'] ?? null);
+
+        if ($payloadTimestamp !== null) {
+            return $payloadTimestamp;
+        }
+
+        $serverSnapshot = is_array($conflict->outbox?->server_snapshot)
+            ? $conflict->outbox?->server_snapshot
+            : [];
+
+        return $this->stringValue($serverSnapshot['updatedAt'] ?? null);
+    }
+
+    protected function valuesDiffer(mixed $localValue, mixed $serverValue): bool
+    {
+        return $this->comparisonValue($localValue) !== $this->comparisonValue($serverValue);
+    }
+
+    protected function comparisonValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            return json_encode($value, JSON_THROW_ON_ERROR);
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+
+        if ($value === null) {
+            return 'null';
+        }
+
+        return trim((string) $value);
+    }
+
+    protected function formatConflictValue(mixed $value): string
+    {
+        if (is_array($value)) {
+            return Str::limit(
+                json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+                160,
+                '...'
+            );
+        }
+
+        if (is_bool($value)) {
+            return $value ? 'Ya' : 'Tidak';
+        }
+
+        if ($value === null || trim((string) $value) === '') {
+            return 'Kosong';
+        }
+
+        return Str::limit(trim((string) $value), 160, '...');
+    }
+
+    protected function stringValue(mixed $value): ?string
+    {
+        if (! is_scalar($value) || trim((string) $value) === '') {
+            return null;
+        }
+
+        return trim((string) $value);
     }
 }

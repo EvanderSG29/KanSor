@@ -61,6 +61,22 @@ class SaleTransactionSyncPayloadFactory
             'statusI='.$sale->status_i,
             'statusII='.$sale->status_ii,
         ];
+        $supplierPaidAt = $sale->supplier_paid_at
+            ?? ($sale->status_i === Sale::STATUS_SUPPLIER_PAID ? $sale->paid_at : null);
+        $supplierPaidAmount = $sale->supplier_paid_amount
+            ?? ($sale->status_i === Sale::STATUS_SUPPLIER_PAID ? $sale->paid_amount : null);
+        $supplierPaymentNote = trim((string) (
+            $sale->supplier_payment_note
+            ?? ($sale->status_i === Sale::STATUS_SUPPLIER_PAID ? $sale->taken_note : null)
+        ));
+        $canteenDepositedAt = $sale->canteen_deposited_at
+            ?? ($sale->status_ii === Sale::STATUS_CANTEEN_DEPOSITED ? $sale->paid_at : null);
+        $canteenDepositedAmount = $sale->canteen_deposited_amount
+            ?? ($sale->status_ii === Sale::STATUS_CANTEEN_DEPOSITED ? $sale->paid_amount : null);
+        $canteenDepositNote = trim((string) (
+            $sale->canteen_deposit_note
+            ?? ($sale->status_ii === Sale::STATUS_CANTEEN_DEPOSITED ? $sale->taken_note : null)
+        ));
 
         $additionalUsers = array_values(array_filter(array_map(
             static fn (mixed $value): string => (string) $value,
@@ -71,18 +87,28 @@ class SaleTransactionSyncPayloadFactory
             $parts[] = 'additionalUsers='.implode(',', $additionalUsers);
         }
 
-        if ($sale->paid_at !== null) {
-            $parts[] = 'paidAt='.$sale->paid_at->format('Y-m-d');
+        if ($supplierPaidAt !== null) {
+            $parts[] = 'supplierPaidAt='.$supplierPaidAt->format('Y-m-d');
         }
 
-        if ($sale->paid_amount !== null) {
-            $parts[] = 'paidAmount='.(int) $sale->paid_amount;
+        if ($supplierPaidAmount !== null) {
+            $parts[] = 'supplierPaidAmount='.(int) $supplierPaidAmount;
         }
 
-        $takenNote = trim((string) ($sale->taken_note ?? ''));
+        if ($supplierPaymentNote !== '') {
+            $parts[] = 'supplierPaymentNote='.str_replace(['|', "\r", "\n"], ['/', ' ', ' '], $supplierPaymentNote);
+        }
 
-        if ($takenNote !== '') {
-            $parts[] = 'localNote='.str_replace(['|', "\r", "\n"], ['/', ' ', ' '], $takenNote);
+        if ($canteenDepositedAt !== null) {
+            $parts[] = 'canteenDepositedAt='.$canteenDepositedAt->format('Y-m-d');
+        }
+
+        if ($canteenDepositedAmount !== null) {
+            $parts[] = 'canteenDepositedAmount='.(int) $canteenDepositedAmount;
+        }
+
+        if ($canteenDepositNote !== '') {
+            $parts[] = 'canteenDepositNote='.str_replace(['|', "\r", "\n"], ['/', ' ', ' '], $canteenDepositNote);
         }
 
         return implode(' | ', $parts);

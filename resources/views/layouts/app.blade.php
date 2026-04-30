@@ -21,6 +21,10 @@
     >
 
     @php
+        $debugUiEnabled = app()->environment('local')
+            && auth()->check()
+            && auth()->user()?->isAdmin()
+            && auth()->user()?->isActiveUser();
         $kanSorAppShell = [
             'setupRunUrl' => app()->environment('local') ? route('setup.run-migrations') : null,
             'setupStatusUrl' => app()->environment('local') ? route('setup.status') : null,
@@ -111,12 +115,13 @@
         }
     </style>
     @auth
-        @if (config('nativephp-internal.running'))
+        @if (config('nativephp-internal.running') && $debugUiEnabled)
             @php
                 $kanSorNativeDesktop = [
                     'debugbarDrawerEvent' => \App\Events\ToggleDebugbarDrawer::class,
                     'debugbarRepoUrl' => 'https://github.com/fruitcake/laravel-debugbar',
                     'telescopeActionUrl' => route('native.desktop.telescope-window'),
+                    'enabled' => true,
                 ];
             @endphp
             <script>
@@ -352,29 +357,33 @@
             <div class="content-wrapper">
                 <section class="content-header">
                     <div class="container-fluid">
-                        <div class="row mb-2">
-                            <div class="col-sm-8">
-                                <h1>@yield('title', 'Dashboard')</h1>
-                                @hasSection('page_subtitle')
-                                    <p class="text-muted mb-0">@yield('page_subtitle')</p>
-                                @endif
-                            </div>
-                            <div class="col-sm-4">
-                                @hasSection('page_actions')
-                                    <div class="float-sm-right mb-2">
-                                        @yield('page_actions')
-                                    </div>
-                                @endif
-                                <ol class="breadcrumb float-sm-right">
-                                    <li class="breadcrumb-item"><a href="{{ auth()->check() ? route('home') : url('/') }}">Dashboard</a></li>
-                                    @hasSection('breadcrumbs')
-                                        @yield('breadcrumbs')
-                                    @else
-                                        <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
+                        @hasSection('page_header')
+                            @yield('page_header')
+                        @else
+                            <div class="row mb-2">
+                                <div class="col-sm-8">
+                                    <h1>@yield('title', 'Dashboard')</h1>
+                                    @hasSection('page_subtitle')
+                                        <p class="text-muted mb-0">@yield('page_subtitle')</p>
                                     @endif
-                                </ol>
+                                </div>
+                                <div class="col-sm-4">
+                                    @hasSection('page_actions')
+                                        <div class="float-sm-right mb-2">
+                                            @yield('page_actions')
+                                        </div>
+                                    @endif
+                                    <ol class="breadcrumb float-sm-right">
+                                        <li class="breadcrumb-item"><a href="{{ auth()->check() ? route('home') : url('/') }}">Dashboard</a></li>
+                                        @hasSection('breadcrumbs')
+                                            @yield('breadcrumbs')
+                                        @else
+                                            <li class="breadcrumb-item active">@yield('title', 'Dashboard')</li>
+                                        @endif
+                                    </ol>
+                                </div>
                             </div>
-                        </div>
+                        @endif
                     </div>
                 </section>
 
@@ -397,7 +406,7 @@
             @endauth
 
             @auth
-                @if (config('nativephp-internal.running'))
+                @if (config('nativephp-internal.running') && $debugUiEnabled)
                     <div id="kansor-debugbar-drawer" class="kansor-debug-drawer" aria-hidden="true">
                         <div class="kansor-debug-drawer__backdrop" data-debugbar-dismiss></div>
                         <section class="kansor-debug-drawer__panel" aria-label="Fruitcake Debugbar Drawer">

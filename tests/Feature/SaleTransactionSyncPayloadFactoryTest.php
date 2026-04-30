@@ -25,10 +25,13 @@ test('sale transaction sync payload maps a sale item into remote transaction pay
         'date' => '2026-04-29',
         'additional_users' => [98, 99],
         'status_i' => Sale::STATUS_SUPPLIER_PAID,
-        'status_ii' => Sale::STATUS_PENDING,
-        'taken_note' => 'Bayar setengah | catatan lokal',
-        'paid_at' => '2026-04-30',
-        'paid_amount' => 45000,
+        'status_ii' => Sale::STATUS_CANTEEN_DEPOSITED,
+        'supplier_paid_at' => '2026-04-30',
+        'supplier_paid_amount' => 45000,
+        'supplier_payment_note' => 'Bayar setengah',
+        'canteen_deposited_at' => '2026-04-30',
+        'canteen_deposited_amount' => 5000,
+        'canteen_deposit_note' => 'Setor kas',
     ]);
     $sale->id = 78;
     $sale->user_id = $user->id;
@@ -71,7 +74,10 @@ test('sale transaction sync payload maps a sale item into remote transaction pay
     ])
         ->and($payload['notes'])->toContain('saleId=78')
         ->and($payload['notes'])->toContain('statusI=dibayar')
+        ->and($payload['notes'])->toContain('statusII=disetor')
         ->and($payload['notes'])->toContain('additionalUsers=98,99')
-        ->and($payload['notes'])->toContain('paidAmount=45000')
-        ->and($payload['notes'])->not->toContain('| catatan lokal');
+        ->and($payload['notes'])->toContain('supplierPaidAmount=45000')
+        ->and($payload['notes'])->toContain('supplierPaymentNote=Bayar setengah')
+        ->and($payload['notes'])->toContain('canteenDepositedAmount=5000')
+        ->and($payload['notes'])->toContain('canteenDepositNote=Setor kas');
 });

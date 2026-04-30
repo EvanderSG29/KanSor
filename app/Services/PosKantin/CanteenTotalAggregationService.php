@@ -15,9 +15,12 @@ class CanteenTotalAggregationService
             ->whereDate('date', $normalizedDate)
             ->sum('total_canteen');
 
-        $canteenTotal = CanteenTotal::query()->firstOrNew([
-            'date' => $normalizedDate,
-        ]);
+        $canteenTotal = CanteenTotal::query()
+            ->whereDate('date', $normalizedDate)
+            ->first()
+            ?? new CanteenTotal([
+                'date' => $normalizedDate,
+            ]);
 
         $canteenTotal->total_amount = $totalAmount;
         $canteenTotal->status_iii ??= 'belum';

@@ -78,6 +78,7 @@ test('petugas cannot access admin routes', function (string $routeName, array $p
 })->with([
     'admin users index' => ['pos-kantin.admin.users.index'],
     'admin sales index' => ['pos-kantin.admin.sales.index'],
+    'admin audit logs index' => ['pos-kantin.admin.audit-logs.index'],
 ]);
 
 test('admin can access admin routes', function (string $routeName, array $parameters = []) {
@@ -87,6 +88,7 @@ test('admin can access admin routes', function (string $routeName, array $parame
 })->with([
     'admin users index' => ['pos-kantin.admin.users.index'],
     'admin sales index' => ['pos-kantin.admin.sales.index'],
+    'admin audit logs index' => ['pos-kantin.admin.audit-logs.index'],
 ]);
 
 test('petugas can access pos sales routes', function (string $routeName, array $parameters = []) {
@@ -122,6 +124,7 @@ test('admin sees the role-based sidebar without technical labels', function () {
         ->assertSee('Kelola Pengguna')
         ->assertSee('Kelola Pemasok')
         ->assertSee('Kelola Menu / Makanan')
+        ->assertSee('Audit Aktivitas')
         ->assertSee('Data Server')
         ->assertSee('Data Transaksi Server')
         ->assertSee('Laporan Operasional')

@@ -8,12 +8,17 @@ use App\Models\Supplier;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
         'services.pos_kantin.api_url' => null,
+    ]);
+
+    Http::fake([
+        'api.pwnedpasswords.com/*' => Http::response('', 200),
     ]);
 });
 
@@ -42,8 +47,8 @@ test('admin can create local user and password is hashed', function () {
         ->post(route('pos-kantin.admin.users.store'), [
             'name' => 'Petugas Baru',
             'email' => 'petugas-baru@example.com',
-            'password' => 'rahasia123',
-            'password_confirmation' => 'rahasia123',
+            'password' => 'KanSor!Pass123',
+            'password_confirmation' => 'KanSor!Pass123',
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
@@ -54,7 +59,7 @@ test('admin can create local user and password is hashed', function () {
     expect($user)->not->toBeNull()
         ->and($user?->role)->toBe(User::ROLE_PETUGAS)
         ->and($user?->active)->toBeTrue()
-        ->and(Hash::check('rahasia123', (string) $user?->password))->toBeTrue();
+        ->and(Hash::check('KanSor!Pass123', (string) $user?->password))->toBeTrue();
 });
 
 test('user email must stay unique on admin create', function () {
@@ -71,8 +76,8 @@ test('user email must stay unique on admin create', function () {
         ->post(route('pos-kantin.admin.users.store'), [
             'name' => 'Duplikat',
             'email' => 'sama@example.com',
-            'password' => 'rahasia123',
-            'password_confirmation' => 'rahasia123',
+            'password' => 'KanSor!Pass123',
+            'password_confirmation' => 'KanSor!Pass123',
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
@@ -161,6 +166,31 @@ test('admin can create food and inactive food is hidden from sale create page', 
         ->assertDontSee($foodFromInactiveSupplier->name);
 });
 
+test('sale create page shows live summary section and quick item controls', function () {
+    $petugas = petugasUser();
+    $supplier = Supplier::factory()->create(['active' => true]);
+
+    Food::factory()->create([
+        'supplier_id' => $supplier->id,
+        'name' => 'Nasi Uduk',
+        'unit' => 'porsi',
+        'default_price' => 12000,
+        'active' => true,
+    ]);
+
+    $this->actingAs($petugas)
+        ->get(route('pos-kantin.sales.create'))
+        ->assertSuccessful()
+        ->assertSee('Ringkasan sebelum simpan')
+        ->assertSee('Total Terjual')
+        ->assertSee('Total Pemasok')
+        ->assertSee('Total Kantin')
+        ->assertSee('Jumlah Item')
+        ->assertSee('Tambah Item')
+        ->assertSee('inputmode="numeric"', false)
+        ->assertSee('data-sale-summary="gross"', false);
+});
+
 test('petugas can create sale and totals are calculated correctly', function () {
     $petugas = petugasUser();
     $assistant = petugasUser();
@@ -231,6 +261,33 @@ test('active sale must be unique for the same supplier and date', function () {
         ])
         ->assertRedirect(route('pos-kantin.sales.create'))
         ->assertSessionHasErrors('date');
+});
+
+test('sale validation rejects leftover greater than quantity', function () {
+    $petugas = petugasUser();
+    $supplier = Supplier::factory()->create(['active' => true]);
+    $food = Food::factory()->create([
+        'supplier_id' => $supplier->id,
+        'active' => true,
+    ]);
+
+    $this->actingAs($petugas)
+        ->from(route('pos-kantin.sales.create'))
+        ->post(route('pos-kantin.sales.store'), [
+            'date' => now('Asia/Jakarta')->format('Y-m-d'),
+            'supplier_id' => $supplier->id,
+            'items' => [
+                [
+                    'food_id' => $food->id,
+                    'unit' => 'pcs',
+                    'quantity' => 2,
+                    'leftover' => 3,
+                    'price_per_unit' => 1000,
+                ],
+            ],
+        ])
+        ->assertRedirect(route('pos-kantin.sales.create'))
+        ->assertSessionHasErrors('items.0.leftover');
 });
 
 test('sale becomes read only for petugas after admin confirmation', function () {
@@ -304,7 +361,8 @@ test('admin can confirm canteen deposited and canteen total is recalculated', fu
     $canteenTotal = CanteenTotal::query()->whereDate('date', $sale->date)->first();
 
     expect($sale->status_ii)->toBe(Sale::STATUS_CANTEEN_DEPOSITED)
-        ->and($sale->paid_amount)->toBe(2000)
+        ->and($sale->canteen_deposited_amount)->toBe(2000)
+        ->and($sale->canteen_deposit_note)->toBe('Setor kas')
         ->and($canteenTotal?->total_amount)->toBe(2000);
 });
 

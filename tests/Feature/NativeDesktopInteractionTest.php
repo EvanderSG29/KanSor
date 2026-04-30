@@ -16,16 +16,73 @@ test('toggle debugbar drawer broadcasts on the nativephp channel', function () {
 });
 
 test('desktop telescope route dispatches the telescope event', function () {
-    $user = User::factory()->create();
+    $this->app->detectEnvironment(fn () => 'local');
+
+    $user = User::factory()->create([
+        'role' => User::ROLE_ADMIN,
+        'status' => User::STATUS_ACTIVE,
+        'active' => true,
+    ]);
 
     Event::fake([OpenTelescopeWindow::class]);
 
+    $csrfToken = 'native-desktop-local';
+
     $this->actingAs($user)
-        ->postJson(route('native.desktop.telescope-window'))
+        ->withSession(['_token' => $csrfToken])
+        ->post(route('native.desktop.telescope-window'), [
+            '_token' => $csrfToken,
+        ])
         ->assertSuccessful()
         ->assertJson(['success' => true]);
 
     Event::assertDispatched(OpenTelescopeWindow::class);
+});
+
+test('desktop telescope route is forbidden outside local environment', function () {
+    $this->app->detectEnvironment(fn () => 'production');
+
+    $user = User::factory()->create([
+        'role' => User::ROLE_ADMIN,
+        'status' => User::STATUS_ACTIVE,
+        'active' => true,
+    ]);
+
+    Event::fake([OpenTelescopeWindow::class]);
+
+    $csrfToken = 'native-desktop-production';
+
+    $this->actingAs($user)
+        ->withSession(['_token' => $csrfToken])
+        ->post(route('native.desktop.telescope-window'), [
+            '_token' => $csrfToken,
+        ])
+        ->assertForbidden();
+
+    Event::assertNotDispatched(OpenTelescopeWindow::class);
+});
+
+test('desktop telescope route is forbidden for non admin users', function () {
+    $this->app->detectEnvironment(fn () => 'local');
+
+    $user = User::factory()->create([
+        'role' => User::ROLE_PETUGAS,
+        'status' => User::STATUS_ACTIVE,
+        'active' => true,
+    ]);
+
+    Event::fake([OpenTelescopeWindow::class]);
+
+    $csrfToken = 'native-desktop-petugas';
+
+    $this->actingAs($user)
+        ->withSession(['_token' => $csrfToken])
+        ->post(route('native.desktop.telescope-window'), [
+            '_token' => $csrfToken,
+        ])
+        ->assertForbidden();
+
+    Event::assertNotDispatched(OpenTelescopeWindow::class);
 });
 
 test('dispatching the telescope event opens or focuses the dedicated window', function () {

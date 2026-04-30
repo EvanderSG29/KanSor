@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Edit Pengguna')
+@section('page_header')
+    <x-pos.page-header title="Edit Pengguna" subtitle="Perbarui identitas, peran, dan status akses pengguna.">
+        <x-slot:actions>
+            <a href="{{ route('pos-kantin.admin.users.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        </x-slot:actions>
+    </x-pos.page-header>
+@endsection
 
 @section('content')
 @include('pos-kantin.partials.alerts')
@@ -15,7 +22,6 @@
         </div>
         <div class="card-footer">
             <button class="btn btn-primary">Perbarui</button>
-            <a href="{{ route('pos-kantin.admin.users.index') }}" class="btn btn-outline-secondary">Kembali</a>
         </div>
     </form>
 </div>

@@ -390,7 +390,324 @@ if (syncConfig) {
     });
 }
 
-if (nativeDesktopConfig) {
+const saleForm = document.querySelector('[data-sale-form]');
+
+if (saleForm instanceof HTMLElement) {
+    const itemsContainer = saleForm.querySelector('[data-sale-items]');
+    const supplierSelect = saleForm.querySelector('[data-sale-supplier]');
+    const addButton = saleForm.querySelector('[data-add-sale-row]');
+    const template = document.getElementById('sale-item-row-template');
+    const summaryFields = {
+        gross: saleForm.querySelector('[data-sale-summary="gross"]'),
+        supplier: saleForm.querySelector('[data-sale-summary="supplier"]'),
+        canteen: saleForm.querySelector('[data-sale-summary="canteen"]'),
+        count: saleForm.querySelector('[data-sale-summary="count"]'),
+    };
+
+    if (
+        itemsContainer instanceof HTMLElement
+        && supplierSelect instanceof HTMLSelectElement
+        && addButton instanceof HTMLElement
+        && template instanceof HTMLTemplateElement
+    ) {
+        const currencyFormatter = new Intl.NumberFormat('id-ID');
+        let nextRowIndex = Array.from(itemsContainer.querySelectorAll('[data-sale-item]'))
+            .reduce((highestIndex, row) => {
+                const rowIndex = Number.parseInt(row.getAttribute('data-sale-row-index') ?? '-1', 10);
+
+                return Number.isNaN(rowIndex) ? highestIndex : Math.max(highestIndex, rowIndex);
+            }, -1) + 1;
+
+        const normalizeInteger = (value) => {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return Math.trunc(value);
+            }
+
+            const normalized = String(value ?? '').replace(/[^\d-]/g, '');
+            const parsed = Number.parseInt(normalized, 10);
+
+            return Number.isNaN(parsed) ? 0 : parsed;
+        };
+
+        const formatCurrency = (value) => `Rp ${currencyFormatter.format(Math.max(value, 0))}`;
+
+        const selectedSupplierCut = () => {
+            const selectedOption = supplierSelect.selectedOptions[0];
+
+            if (! selectedOption) {
+                return 0;
+            }
+
+            const cut = Number.parseFloat(selectedOption.dataset.percentageCut ?? '0');
+
+            return Number.isNaN(cut) ? 0 : cut;
+        };
+
+        const rowSubtotal = (row) => {
+            const quantityInput = row.querySelector('[data-sale-quantity]');
+            const priceInput = row.querySelector('[data-sale-price]');
+            const quantity = quantityInput instanceof HTMLInputElement ? Math.max(normalizeInteger(quantityInput.value), 0) : 0;
+            const price = priceInput instanceof HTMLInputElement ? Math.max(normalizeInteger(priceInput.value), 0) : 0;
+
+            return quantity * price;
+        };
+
+        const rowHasMeaningfulValue = (row) => {
+            const foodSelect = row.querySelector('[data-food-select]');
+            const unitInput = row.querySelector('input[name$="[unit]"]');
+            const leftoverInput = row.querySelector('[data-sale-leftover]');
+            const priceInput = row.querySelector('[data-sale-price]');
+
+            return (
+                (foodSelect instanceof HTMLSelectElement && foodSelect.value.trim() !== '')
+                || (unitInput instanceof HTMLInputElement && unitInput.value.trim() !== '')
+                || (leftoverInput instanceof HTMLInputElement && leftoverInput.value.trim() !== '')
+                || (priceInput instanceof HTMLInputElement && priceInput.value.trim() !== '')
+            );
+        };
+
+        const syncRowOptions = (row) => {
+            const supplierId = supplierSelect.value;
+            const foodSelect = row.querySelector('[data-food-select]');
+
+            if (! (foodSelect instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            Array.from(foodSelect.options).forEach((option) => {
+                if (! option.dataset.supplierId) {
+                    option.hidden = false;
+                    option.disabled = false;
+                    return;
+                }
+
+                const matchesSupplier = supplierId === '' || option.dataset.supplierId === supplierId;
+                option.hidden = ! matchesSupplier;
+                option.disabled = ! matchesSupplier;
+            });
+
+            const selectedOption = foodSelect.selectedOptions[0];
+
+            if (
+                selectedOption
+                && selectedOption.dataset.supplierId
+                && supplierId !== ''
+                && selectedOption.dataset.supplierId !== supplierId
+            ) {
+                foodSelect.value = '';
+
+                const unitInput = row.querySelector('input[name$="[unit]"]');
+                const priceInput = row.querySelector('[data-sale-price]');
+
+                if (unitInput instanceof HTMLInputElement) {
+                    unitInput.value = '';
+                }
+
+                if (priceInput instanceof HTMLInputElement) {
+                    priceInput.value = '';
+                }
+            }
+        };
+
+        const syncFoodDefaults = (row, force = false) => {
+            const foodSelect = row.querySelector('[data-food-select]');
+
+            if (! (foodSelect instanceof HTMLSelectElement)) {
+                return;
+            }
+
+            const selectedOption = foodSelect.selectedOptions[0];
+
+            if (! selectedOption) {
+                return;
+            }
+
+            const unitInput = row.querySelector('input[name$="[unit]"]');
+            const priceInput = row.querySelector('[data-sale-price]');
+
+            if (unitInput instanceof HTMLInputElement && (force || unitInput.value.trim() === '')) {
+                unitInput.value = selectedOption.dataset.unit ?? '';
+            }
+
+            if (priceInput instanceof HTMLInputElement && (force || priceInput.value.trim() === '')) {
+                priceInput.value = selectedOption.dataset.price ?? '';
+            }
+        };
+
+        const validateRowState = (row) => {
+            const quantityInput = row.querySelector('[data-sale-quantity]');
+            const leftoverInput = row.querySelector('[data-sale-leftover]');
+
+            if (! (quantityInput instanceof HTMLInputElement) || ! (leftoverInput instanceof HTMLInputElement)) {
+                return;
+            }
+
+            const quantity = Math.max(normalizeInteger(quantityInput.value), 0);
+            const leftoverRawValue = leftoverInput.value.trim();
+            const leftover = leftoverRawValue === '' ? 0 : Math.max(normalizeInteger(leftoverRawValue), 0);
+
+            if (leftoverRawValue !== '' && quantity > 0 && leftover > quantity) {
+                leftoverInput.setCustomValidity('Sisa tidak boleh lebih besar dari qty.');
+                leftoverInput.classList.add('is-invalid');
+            } else {
+                leftoverInput.setCustomValidity('');
+                leftoverInput.classList.remove('is-invalid');
+            }
+        };
+
+        const updateRowPresentation = (row, order) => {
+            const subtotal = rowSubtotal(row);
+            const subtotalBadge = row.querySelector('[data-sale-item-subtotal]');
+            const itemTitle = row.querySelector('[data-sale-item-title]');
+            const itemNote = row.querySelector('[data-sale-item-note]');
+            const quantityInput = row.querySelector('[data-sale-quantity]');
+            const quantity = quantityInput instanceof HTMLInputElement ? Math.max(normalizeInteger(quantityInput.value), 0) : 0;
+
+            if (subtotalBadge instanceof HTMLElement) {
+                subtotalBadge.textContent = formatCurrency(subtotal);
+            }
+
+            if (itemTitle instanceof HTMLElement) {
+                itemTitle.textContent = `Item ${order}`;
+            }
+
+            if (itemNote instanceof HTMLElement) {
+                itemNote.textContent = subtotal > 0
+                    ? `Qty ${quantity} dengan subtotal ${formatCurrency(subtotal)}.`
+                    : 'Lengkapi qty dan harga untuk melihat subtotal.';
+            }
+        };
+
+        const updateSummary = () => {
+            const cutPercentage = selectedSupplierCut();
+            const rows = Array.from(itemsContainer.querySelectorAll('[data-sale-item]'));
+            let grossTotal = 0;
+            let activeItemCount = 0;
+
+            rows.forEach((row, index) => {
+                validateRowState(row);
+                updateRowPresentation(row, index + 1);
+
+                const subtotal = rowSubtotal(row);
+                grossTotal += subtotal;
+
+                if (rowHasMeaningfulValue(row)) {
+                    activeItemCount += 1;
+                }
+            });
+
+            const canteenTotal = Math.round(grossTotal * (cutPercentage / 100));
+            const supplierTotal = grossTotal - canteenTotal;
+
+            if (summaryFields.gross instanceof HTMLElement) {
+                summaryFields.gross.textContent = formatCurrency(grossTotal);
+            }
+
+            if (summaryFields.supplier instanceof HTMLElement) {
+                summaryFields.supplier.textContent = formatCurrency(supplierTotal);
+            }
+
+            if (summaryFields.canteen instanceof HTMLElement) {
+                summaryFields.canteen.textContent = formatCurrency(canteenTotal);
+            }
+
+            if (summaryFields.count instanceof HTMLElement) {
+                summaryFields.count.textContent = `${activeItemCount} item`;
+            }
+        };
+
+        const clearRow = (row) => {
+            row.querySelectorAll('input, select').forEach((field) => {
+                if (field instanceof HTMLInputElement) {
+                    if (field.type === 'hidden') {
+                        field.value = '';
+                        return;
+                    }
+
+                    if (field.matches('[data-sale-quantity]')) {
+                        field.value = '1';
+                    } else {
+                        field.value = '';
+                    }
+
+                    field.setCustomValidity('');
+                    field.classList.remove('is-invalid');
+                }
+
+                if (field instanceof HTMLSelectElement) {
+                    field.value = '';
+                    field.classList.remove('is-invalid');
+                }
+            });
+        };
+
+        const attachRowEvents = (row) => {
+            syncRowOptions(row);
+            syncFoodDefaults(row);
+            validateRowState(row);
+
+            row.querySelector('[data-food-select]')?.addEventListener('change', () => {
+                syncFoodDefaults(row, true);
+                updateSummary();
+            });
+
+            row.querySelectorAll('input, select').forEach((field) => {
+                field.addEventListener('input', () => updateSummary());
+                field.addEventListener('change', () => updateSummary());
+            });
+
+            row.querySelector('[data-remove-row]')?.addEventListener('click', () => {
+                const rows = itemsContainer.querySelectorAll('[data-sale-item]');
+
+                if (rows.length <= 1) {
+                    clearRow(row);
+                    updateSummary();
+                    return;
+                }
+
+                row.remove();
+                updateSummary();
+            });
+        };
+
+        supplierSelect.addEventListener('change', () => {
+            itemsContainer.querySelectorAll('[data-sale-item]').forEach((row) => {
+                syncRowOptions(row);
+                syncFoodDefaults(row);
+            });
+
+            updateSummary();
+        });
+
+        addButton.addEventListener('click', () => {
+            const markup = template.innerHTML.replaceAll('__INDEX__', String(nextRowIndex));
+            nextRowIndex += 1;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = markup.trim();
+            const row = wrapper.firstElementChild;
+
+            if (! row) {
+                return;
+            }
+
+            itemsContainer.appendChild(row);
+            attachRowEvents(row);
+
+            const firstField = row.querySelector('[data-food-select]');
+
+            if (firstField instanceof HTMLElement) {
+                firstField.focus();
+            }
+
+            updateSummary();
+        });
+
+        itemsContainer.querySelectorAll('[data-sale-item]').forEach((row) => attachRowEvents(row));
+        updateSummary();
+    }
+}
+
+if (nativeDesktopConfig?.enabled) {
     const drawerRoot = document.getElementById('kansor-debugbar-drawer');
     const drawerWebview = document.getElementById('kansor-debugbar-webview');
     const drawerOpenClass = 'kansor-debug-drawer--open';

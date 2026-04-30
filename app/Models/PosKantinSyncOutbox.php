@@ -30,8 +30,8 @@ class PosKantinSyncOutbox extends Model
     protected function casts(): array
     {
         return [
-            'payload' => 'array',
-            'server_snapshot' => 'array',
+            'payload' => 'encrypted:array',
+            'server_snapshot' => 'encrypted:array',
         ];
     }
 

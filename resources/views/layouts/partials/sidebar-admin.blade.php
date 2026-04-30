@@ -76,3 +76,9 @@
         <p>Preferensi</p>
     </a>
 </li>
+<li class="nav-item">
+    <a href="{{ route('pos-kantin.admin.audit-logs.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.audit-logs.*') ? 'active' : '' }}">
+        <i class="nav-icon fas fa-shield-alt"></i>
+        <p>Audit Aktivitas</p>
+    </a>
+</li>

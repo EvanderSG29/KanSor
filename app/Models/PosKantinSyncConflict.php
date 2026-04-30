@@ -25,8 +25,8 @@ class PosKantinSyncConflict extends Model
     protected function casts(): array
     {
         return [
-            'local_payload' => 'array',
-            'server_payload' => 'array',
+            'local_payload' => 'encrypted:array',
+            'server_payload' => 'encrypted:array',
         ];
     }
 

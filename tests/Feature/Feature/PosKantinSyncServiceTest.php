@@ -9,6 +9,7 @@ use App\Services\PosKantin\PosKantinLocalStore;
 use App\Services\PosKantin\PosKantinSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
@@ -292,4 +293,193 @@ test('sync status exposes queued applied failed and latest push summary', functi
         ->and($status['failedCount'])->toBe(1)
         ->and($status['conflictCount'])->toBe(1)
         ->and($status['lastRun']['summary']['push']['applied'] ?? null)->toBe(1);
+});
+
+test('unresolved conflicts expose field diff context for the sync page', function () {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => 'admin',
+        'status' => 'aktif',
+    ]);
+
+    $outbox = PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '44444444-4444-4444-4444-444444444444',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-004',
+        'payload' => [
+            'id' => 'SUP-004',
+            'supplierName' => 'Supplier Lokal',
+            'updatedAt' => '2026-04-29T08:00:00.000Z',
+        ],
+        'expected_updated_at' => '2026-04-29T08:00:00.000Z',
+        'status' => 'conflict',
+        'last_error' => 'Data server berubah sejak perubahan lokal dibuat.',
+        'server_snapshot' => [
+            'id' => 'SUP-004',
+            'supplierName' => 'Supplier Server',
+            'updatedAt' => '2026-04-29T09:15:00.000Z',
+        ],
+    ]);
+
+    PosKantinSyncConflict::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'outbox_id' => $outbox->id,
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-004',
+        'local_payload' => [
+            'id' => 'SUP-004',
+            'supplierName' => 'Supplier Lokal',
+            'updatedAt' => '2026-04-29T08:00:00.000Z',
+        ],
+        'server_payload' => [
+            'id' => 'SUP-004',
+            'supplierName' => 'Supplier Server',
+            'updatedAt' => '2026-04-29T09:15:00.000Z',
+        ],
+        'resolution_status' => 'unresolved',
+    ]);
+
+    $conflicts = app(PosKantinSyncService::class)->unresolvedConflicts($user);
+
+    expect($conflicts)->toHaveCount(1)
+        ->and($conflicts[0]['entityLabel'])->toBe('Supplier')
+        ->and($conflicts[0]['lastError'])->toBe('Data server berubah sejak perubahan lokal dibuat.')
+        ->and($conflicts[0]['localUpdatedAt'])->toBe('2026-04-29T08:00:00.000Z')
+        ->and($conflicts[0]['serverUpdatedAt'])->toBe('2026-04-29T09:15:00.000Z')
+        ->and($conflicts[0]['hasComparisonContext'])->toBeTrue()
+        ->and($conflicts[0]['fieldDiffs'])->toBe([
+            [
+                'field' => 'supplierName',
+                'localValue' => 'Supplier Lokal',
+                'serverValue' => 'Supplier Server',
+            ],
+            [
+                'field' => 'updatedAt',
+                'localValue' => '2026-04-29T08:00:00.000Z',
+                'serverValue' => '2026-04-29T09:15:00.000Z',
+            ],
+        ]);
+});
+
+test('sync payload columns are stored encrypted for new records', function () {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => 'admin',
+        'status' => 'aktif',
+    ]);
+
+    $outbox = PosKantinSyncOutbox::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '66666666-6666-6666-6666-666666666666',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-006',
+        'payload' => [
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Rahasia',
+        ],
+        'status' => 'pending',
+        'server_snapshot' => [
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Server',
+        ],
+    ]);
+
+    $conflict = PosKantinSyncConflict::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'outbox_id' => $outbox->id,
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-006',
+        'local_payload' => [
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Rahasia',
+        ],
+        'server_payload' => [
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Server',
+        ],
+        'resolution_status' => 'unresolved',
+    ]);
+
+    $rawOutboxPayload = DB::table('pos_sync_outbox')->where('id', $outbox->id)->value('payload');
+    $rawConflictPayload = DB::table('pos_sync_conflicts')->where('id', $conflict->id)->value('local_payload');
+
+    expect($rawOutboxPayload)->toBeString()
+        ->not->toContain('Supplier Rahasia')
+        ->and($rawConflictPayload)->toBeString()
+        ->not->toContain('Supplier Rahasia')
+        ->and($outbox->fresh()?->payload)->toMatchArray([
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Rahasia',
+        ])
+        ->and($conflict->fresh()?->local_payload)->toMatchArray([
+            'id' => 'SUP-006',
+            'supplierName' => 'Supplier Rahasia',
+        ]);
+});
+
+test('sync payload encryption migration converts legacy plaintext rows', function () {
+    $user = User::factory()->create([
+        'remote_user_id' => 'USR-001',
+        'role' => 'admin',
+        'status' => 'aktif',
+    ]);
+
+    $outboxId = DB::table('pos_sync_outbox')->insertGetId([
+        'scope_owner_user_id' => $user->getKey(),
+        'client_mutation_id' => '77777777-7777-7777-7777-777777777777',
+        'action' => 'saveSupplier',
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-007',
+        'payload' => json_encode([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Plaintext',
+        ], JSON_THROW_ON_ERROR),
+        'status' => 'conflict',
+        'server_snapshot' => json_encode([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Server',
+        ], JSON_THROW_ON_ERROR),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $conflictId = DB::table('pos_sync_conflicts')->insertGetId([
+        'scope_owner_user_id' => $user->getKey(),
+        'outbox_id' => $outboxId,
+        'entity_type' => 'supplier',
+        'entity_remote_id' => 'SUP-007',
+        'local_payload' => json_encode([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Plaintext',
+        ], JSON_THROW_ON_ERROR),
+        'server_payload' => json_encode([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Server',
+        ], JSON_THROW_ON_ERROR),
+        'resolution_status' => 'unresolved',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $migration = require database_path('migrations/2026_04_30_051927_encrypt_pos_kantin_sync_payloads.php');
+    $migration->up();
+
+    $rawOutboxPayload = DB::table('pos_sync_outbox')->where('id', $outboxId)->value('payload');
+    $rawConflictPayload = DB::table('pos_sync_conflicts')->where('id', $conflictId)->value('local_payload');
+
+    expect($rawOutboxPayload)->toBeString()
+        ->not->toContain('Supplier Plaintext')
+        ->and($rawConflictPayload)->toBeString()
+        ->not->toContain('Supplier Plaintext')
+        ->and(PosKantinSyncOutbox::query()->findOrFail($outboxId)->payload)->toMatchArray([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Plaintext',
+        ])
+        ->and(PosKantinSyncConflict::query()->findOrFail($conflictId)->local_payload)->toMatchArray([
+            'id' => 'SUP-007',
+            'supplierName' => 'Supplier Plaintext',
+        ]);
 });

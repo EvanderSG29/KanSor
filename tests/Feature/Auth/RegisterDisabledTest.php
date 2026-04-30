@@ -3,8 +3,15 @@
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    Http::fake([
+        'api.pwnedpasswords.com/*' => Http::response('', 200),
+    ]);
+});
 
 test('a guest cannot submit the public register form', function () {
     $this->post('/register', [
@@ -35,8 +42,8 @@ test('admin can still create users from the internal admin module', function () 
         ->post(route('pos-kantin.admin.users.store'), [
             'name' => 'Petugas Internal',
             'email' => 'petugas-internal@example.com',
-            'password' => 'rahasia123',
-            'password_confirmation' => 'rahasia123',
+            'password' => 'KanSor!Pass123',
+            'password_confirmation' => 'KanSor!Pass123',
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
@@ -47,5 +54,5 @@ test('admin can still create users from the internal admin module', function () 
     expect($user)->not->toBeNull()
         ->and($user?->role)->toBe(User::ROLE_PETUGAS)
         ->and($user?->active)->toBeTrue()
-        ->and(Hash::check('rahasia123', (string) $user?->password))->toBeTrue();
+        ->and(Hash::check('KanSor!Pass123', (string) $user?->password))->toBeTrue();
 });

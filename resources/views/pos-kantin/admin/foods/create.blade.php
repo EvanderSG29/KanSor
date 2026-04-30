@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Tambah Menu / Makanan')
+@section('page_header')
+    <x-pos.page-header title="Tambah Menu / Makanan" subtitle="Siapkan item jual baru agar siap dipakai pada transaksi harian.">
+        <x-slot:actions>
+            <a href="{{ route('pos-kantin.admin.foods.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+        </x-slot:actions>
+    </x-pos.page-header>
+@endsection
 
 @section('content')
 @include('pos-kantin.partials.alerts')
@@ -11,7 +18,6 @@
         <div class="card-body">@include('pos-kantin.admin.foods._form')</div>
         <div class="card-footer">
             <button class="btn btn-primary">Simpan</button>
-            <a href="{{ route('pos-kantin.admin.foods.index') }}" class="btn btn-outline-secondary">Kembali</a>
         </div>
     </form>
 </div>
