@@ -1,15 +1,33 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard POS')
-@section('page_subtitle', 'Status backend, ringkasan operasional, dan jalur cepat ke modul inti POS Kantin.')
+@php
+    $currentUser = auth()->user();
+    $isAdmin = $currentUser?->isAdmin() ?? false;
+    $queuedCount = (int) ($syncStatus['queuedCount'] ?? $syncStatus['pendingCount'] ?? 0);
+    $failedCount = (int) ($syncStatus['failedCount'] ?? 0);
+    $conflictCount = (int) ($syncStatus['conflictCount'] ?? 0);
+    $syncAttentionCount = $queuedCount + $failedCount + $conflictCount;
+@endphp
+
+@section('title', 'Dashboard')
+@section('page_subtitle', $isAdmin
+    ? 'Pantau operasional harian, proses konfirmasi admin, dan status sinkronisasi server.'
+    : 'Fokus pada input transaksi harian, riwayat transaksi, dan status sinkronisasi perangkat.')
 @section('page_actions')
-    <a href="{{ route('pos-kantin.reports.index') }}" class="btn btn-primary btn-sm">
-        <i class="fas fa-chart-pie mr-1"></i>
-        Buka laporan
-    </a>
+    @if ($isAdmin)
+        <a href="{{ route('pos-kantin.admin.sales.index') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-check-double mr-1"></i>
+            Buka konfirmasi admin
+        </a>
+    @else
+        <a href="{{ route('pos-kantin.sales.create') }}" class="btn btn-primary btn-sm">
+            <i class="fas fa-cash-register mr-1"></i>
+            Input transaksi
+        </a>
+    @endif
 @endsection
 @section('breadcrumbs')
-    <li class="breadcrumb-item active">Dashboard POS</li>
+    <li class="breadcrumb-item active">Dashboard</li>
 @endsection
 
 @section('content')
@@ -23,7 +41,7 @@
             <div class="icon">
                 <i class="fas fa-shopping-cart"></i>
             </div>
-            <a href="{{ route('pos-kantin.transactions.index') }}" class="small-box-footer">Lihat detail <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ route('pos-kantin.sales.index') }}" class="small-box-footer">Lihat riwayat <i class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <div class="col-lg-3 col-6">
@@ -47,20 +65,33 @@
             <div class="icon">
                 <i class="fas fa-user"></i>
             </div>
-            <a href="{{ route('pos-kantin.suppliers.index') }}" class="small-box-footer">Lihat supplier <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="{{ $isAdmin ? route('pos-kantin.admin.suppliers.index') : route('pos-kantin.suppliers.index') }}" class="small-box-footer">Lihat pemasok <i class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <div class="col-lg-3 col-6">
-        <div class="small-box bg-danger">
-            <div class="inner">
-                <h3>{{ number_format($summary['overdueSupplierPayoutCount'] ?? 0) }}</h3>
-                <p>Payout Supplier Overdue</p>
+        @if ($isAdmin)
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ number_format($summary['overdueSupplierPayoutCount'] ?? 0) }}</h3>
+                    <p>Payout Pemasok Overdue</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="small-box-footer">Lihat payout <i class="fas fa-arrow-circle-right"></i></a>
             </div>
-            <div class="icon">
-                <i class="fas fa-exclamation-triangle"></i>
+        @else
+            <div class="small-box bg-danger">
+                <div class="inner">
+                    <h3>{{ number_format($syncAttentionCount) }}</h3>
+                    <p>Perlu Sinkronisasi</p>
+                </div>
+                <div class="icon">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <a href="{{ route('pos-kantin.sync.index') }}" class="small-box-footer">Lihat sinkronisasi <i class="fas fa-arrow-circle-right"></i></a>
             </div>
-            <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="small-box-footer">Lihat payout <i class="fas fa-arrow-circle-right"></i></a>
-        </div>
+        @endif
     </div>
 </div>
 
@@ -105,30 +136,49 @@
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    <a href="{{ route('pos-kantin.transactions.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-receipt mr-2 text-primary"></i>Transaksi</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
-                    <a href="{{ route('pos-kantin.savings.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-wallet mr-2 text-success"></i>Simpanan</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
-                    <a href="{{ route('pos-kantin.suppliers.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-user mr-2 text-warning"></i>Pemasok</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
-                    <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-hand-holding-usd mr-2 text-danger"></i>Pembayaran</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
-                    <a href="{{ route('pos-kantin.reports.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-chart-pie mr-2 text-info"></i>Laporan</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
-                    <a href="{{ route('pos-kantin.users.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                        <span><i class="fas fa-users-cog mr-2 text-secondary"></i>Pengguna</span>
-                        <i class="fas fa-angle-right text-muted"></i>
-                    </a>
+                    @if ($isAdmin)
+                        <a href="{{ route('pos-kantin.sales.create') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-cash-register mr-2 text-primary"></i>Input Transaksi</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.admin.sales.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-check-double mr-2 text-success"></i>Konfirmasi Admin</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.admin.suppliers.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-user mr-2 text-warning"></i>Kelola Pemasok</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-hand-holding-usd mr-2 text-danger"></i>Payout Pemasok</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.reports.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-chart-pie mr-2 text-info"></i>Laporan Operasional</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.users.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-database mr-2 text-secondary"></i>Data Pengguna Server</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                    @else
+                        <a href="{{ route('pos-kantin.sales.create') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-cash-register mr-2 text-primary"></i>Input Transaksi</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.sales.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-history mr-2 text-success"></i>Riwayat Transaksi</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.sync.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-sync-alt mr-2 text-warning"></i>Status Sinkronisasi</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                        <a href="{{ route('pos-kantin.preferences.index') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-sliders-h mr-2 text-secondary"></i>Preferensi</span>
+                            <i class="fas fa-angle-right text-muted"></i>
+                        </a>
+                    @endif
                 </div>
             </div>
         </div>
@@ -136,7 +186,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Ringkasan data lokal POS Kantin</h3>
+                <h3 class="card-title">Ringkasan operasional</h3>
             </div>
             <div class="card-body">
                 <div class="row">

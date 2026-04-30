@@ -1,12 +1,12 @@
 @extends('layouts.app')
 
-@section('title', 'Transaksi Harian Lokal')
+@section('title', 'Riwayat Transaksi')
 
 @section('content')
 @include('pos-kantin.partials.alerts')
 <div class="card card-outline card-primary">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h3 class="card-title mb-0">Daftar transaksi lokal</h3>
+        <h3 class="card-title mb-0">Daftar transaksi</h3>
         <a href="{{ route('pos-kantin.sales.create') }}" class="btn btn-primary btn-sm">Input transaksi</a>
     </div>
     <div class="card-body">
@@ -68,7 +68,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada transaksi lokal.</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada transaksi.</td></tr>
                 @endforelse
             </tbody>
         </table>

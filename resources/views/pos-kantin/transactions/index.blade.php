@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Transaksi')
+@section('title', 'Data Transaksi Server')
 
 @section('content')
 <div class="card card-outline card-primary">

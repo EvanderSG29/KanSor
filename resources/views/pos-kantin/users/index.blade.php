@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Pengguna')
+@section('title', 'Data Pengguna Server')
 
 @section('content')
 @isset($errorMessage)
@@ -49,7 +49,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Daftar pengguna backend</h3>
+        <h3 class="card-title">Data pengguna server</h3>
     </div>
     <div class="card-body table-responsive p-0">
         <table class="table table-hover text-nowrap">

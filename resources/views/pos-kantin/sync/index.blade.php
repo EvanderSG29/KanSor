@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Sinkronisasi')
+@section('title', 'Status Sinkronisasi')
 @section('page_subtitle', 'Pantau status offline/online, antrean perubahan lokal, dan konflik sinkronisasi.')
 
 @section('content')
@@ -11,7 +11,7 @@
         <div class="small-box bg-info">
             <div class="inner">
                 <h3>{{ number_format($syncStatus['queuedCount'] ?? $syncStatus['pendingCount'] ?? 0) }}</h3>
-                <p>Queued</p>
+                <p>Antrean</p>
             </div>
             <div class="icon">
                 <i class="fas fa-upload"></i>
@@ -22,7 +22,7 @@
         <div class="small-box bg-success">
             <div class="inner">
                 <h3>{{ number_format($syncStatus['appliedCount'] ?? 0) }}</h3>
-                <p>Applied</p>
+                <p>Tersinkron</p>
             </div>
             <div class="icon">
                 <i class="fas fa-check-circle"></i>
@@ -33,7 +33,7 @@
         <div class="small-box bg-warning">
             <div class="inner">
                 <h3>{{ number_format($syncStatus['failedCount'] ?? 0) }}</h3>
-                <p>Failed</p>
+                <p>Gagal</p>
             </div>
             <div class="icon">
                 <i class="fas fa-exclamation-circle"></i>
@@ -55,7 +55,7 @@
         <div class="small-box bg-secondary">
             <div class="inner">
                 <h3>{{ $syncStatus['lastRemoteSyncAt'] ? \Illuminate\Support\Carbon::parse($syncStatus['lastRemoteSyncAt'])->format('H:i') : '-' }}</h3>
-                <p>Sync terakhir</p>
+                <p>Sinkron terakhir</p>
             </div>
             <div class="icon">
                 <i class="fas fa-sync"></i>
@@ -67,10 +67,10 @@
 @if (($syncStatus['lastRun']['summary']['push'] ?? null) !== null)
     <div class="alert alert-light border">
         Push terakhir:
-        queued {{ number_format($syncStatus['lastRun']['summary']['push']['queued'] ?? 0) }},
-        applied {{ number_format($syncStatus['lastRun']['summary']['push']['applied'] ?? 0) }},
-        failed {{ number_format($syncStatus['lastRun']['summary']['push']['failed'] ?? 0) }},
-        conflict {{ number_format($syncStatus['lastRun']['summary']['push']['conflicts'] ?? 0) }}.
+        antrean {{ number_format($syncStatus['lastRun']['summary']['push']['queued'] ?? 0) }},
+        tersinkron {{ number_format($syncStatus['lastRun']['summary']['push']['applied'] ?? 0) }},
+        gagal {{ number_format($syncStatus['lastRun']['summary']['push']['failed'] ?? 0) }},
+        konflik {{ number_format($syncStatus['lastRun']['summary']['push']['conflicts'] ?? 0) }}.
     </div>
 @endif
 
@@ -100,7 +100,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Konflik unresolved</h3>
+        <h3 class="card-title">Konflik sinkronisasi</h3>
     </div>
     <div class="card-body table-responsive p-0">
         <table class="table table-hover text-nowrap mb-0">
@@ -141,7 +141,7 @@
 
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Riwayat sync terbaru</h3>
+        <h3 class="card-title">Riwayat sinkronisasi terbaru</h3>
     </div>
     <div class="card-body table-responsive p-0">
         <table class="table table-hover text-nowrap mb-0">

@@ -47,7 +47,7 @@ test('setup blocker is rendered when local schema is not ready', function () {
         ->assertOk()
         ->assertSee('Setup database lokal diperlukan')
         ->assertSee('2026_04_29_032656_add_active_to_users_table')
-        ->assertDontSee('Dashboard POS');
+        ->assertDontSee('Ringkasan operasional');
 });
 
 test('setup action runs migrations in local environment', function () {

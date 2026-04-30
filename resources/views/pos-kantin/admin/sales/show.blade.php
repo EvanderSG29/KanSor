@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Konfirmasi Transaksi')
+@section('title', 'Detail Konfirmasi Admin')
 
 @section('content')
 @include('pos-kantin.partials.alerts')
@@ -25,8 +25,8 @@
                         <dl>
                             <dt>Total pemasok</dt><dd>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</dd>
                             <dt>Total kantin</dt><dd>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</dd>
-                            <dt>Status I</dt><dd>{{ strtoupper($sale->status_i) }}</dd>
-                            <dt>Status II</dt><dd>{{ strtoupper($sale->status_ii) }}</dd>
+                            <dt>Status Pembayaran Pemasok</dt><dd>{{ ucfirst($sale->status_i) }}</dd>
+                            <dt>Status Setoran Kantin</dt><dd>{{ ucfirst($sale->status_ii) }}</dd>
                         </dl>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Edit Pengguna POS')
+@section('title', 'Edit Pengguna')
 
 @section('content')
 @include('pos-kantin.partials.alerts')

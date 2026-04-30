@@ -238,6 +238,14 @@
     @stack('styles')
 </head>
 <body class="@yield('body_class', 'hold-transition sidebar-mini layout-fixed')">
+    @php
+        $kanSorSyncNavigationStatus = $kanSorSyncNavigationStatus ?? [];
+        $currentUser = Auth::user();
+        $syncQueuedCount = (int) ($kanSorSyncNavigationStatus['queuedCount'] ?? $kanSorSyncNavigationStatus['pendingCount'] ?? 0);
+        $syncFailedCount = (int) ($kanSorSyncNavigationStatus['failedCount'] ?? 0);
+        $syncConflictCount = (int) ($kanSorSyncNavigationStatus['conflictCount'] ?? 0);
+        $syncAttentionCount = $syncFailedCount + $syncConflictCount;
+    @endphp
     @hasSection('auth_page')
         @yield('content')
     @else
@@ -249,16 +257,15 @@
                             <i class="fas fa-bars"></i>
                         </a>
                     </li>
-                    <li class="nav-item d-none d-sm-inline-block">
-                        <a href="{{ url('/') }}" class="nav-link">Beranda</a>
-                    </li>
                     @auth
                         <li class="nav-item d-none d-sm-inline-block">
-                            <a href="{{ route('home') }}" class="nav-link">Dashboard</a>
+                            <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Dashboard</a>
                         </li>
-                        <li class="nav-item d-none d-lg-inline-block">
-                            <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link">Laporan</a>
-                        </li>
+                        @if ($currentUser?->isAdmin())
+                            <li class="nav-item d-none d-lg-inline-block">
+                                <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">Laporan Operasional</a>
+                            </li>
+                        @endif
                         <li class="nav-item d-none d-md-flex align-items-center ml-2">
                             <div class="btn-group btn-group-sm kansor-shell-nav" role="group" aria-label="Navigasi pengembangan">
                                 <button type="button" class="btn btn-outline-secondary" data-app-shell-back disabled title="Kembali">
@@ -280,11 +287,6 @@
                         @if (Route::has('login'))
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('login') }}">{{ __('Login') }}</a>
-                            </li>
-                        @endif
-                        @if (Route::has('register'))
-                            <li class="nav-item">
-                                <a class="nav-link" href="{{ route('register') }}">{{ __('Register') }}</a>
                             </li>
                         @endif
                     @else
@@ -328,129 +330,12 @@
 
                     <nav class="mt-2">
                         <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-                            <li class="nav-item">
-                                <a href="{{ url('/') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">
-                                    <i class="nav-icon fas fa-home"></i>
-                                    <p>Beranda</p>
-                                </a>
-                            </li>
                             @auth
-                                <li class="nav-header">RINGKASAN</li>
-                                <li class="nav-item">
-                                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-tachometer-alt"></i>
-                                        <p>Dashboard POS</p>
-                                    </a>
-                                </li>
-
-                                <li class="nav-header">OPERASIONAL</li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.sales.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.sales.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-cash-register"></i>
-                                        <p>Transaksi Lokal</p>
-                                    </a>
-                                </li>
-                                @if (Auth::user()->isAdmin())
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.admin.suppliers.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.suppliers.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-user"></i>
-                                            <p>Pemasok Lokal</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.admin.foods.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.foods.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-utensils"></i>
-                                            <p>Makanan Lokal</p>
-                                        </a>
-                                    </li>
+                                @if ($currentUser?->isAdmin())
+                                    @include('layouts.partials.sidebar-admin')
+                                @elseif ($currentUser?->isPetugas())
+                                    @include('layouts.partials.sidebar-petugas')
                                 @endif
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.preferences.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.preferences.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-sliders-h"></i>
-                                        <p>Preferensi</p>
-                                    </a>
-                                </li>
-
-                                <li class="nav-header">INTEGRASI BACKEND</li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.transactions.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.transactions.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-receipt"></i>
-                                        <p>Snapshot Transaksi</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.savings.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.savings.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-wallet"></i>
-                                        <p>Simpanan</p>
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.suppliers.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.suppliers.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-user"></i>
-                                        <p>Snapshot Pemasok</p>
-                                    </a>
-                                </li>
-
-                                @if (Auth::user()->isAdmin())
-                                    <li class="nav-header">PELAPORAN</li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.admin.sales.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.sales.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-check-double"></i>
-                                            <p>Konfirmasi Admin</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.admin.canteen-totals.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.canteen-totals.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-chart-line"></i>
-                                            <p>Rekap Kantin</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.supplier-payouts.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-hand-holding-usd"></i>
-                                            <p>Pembayaran Snapshot</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-chart-pie"></i>
-                                            <p>Laporan Snapshot</p>
-                                        </a>
-                                    </li>
-
-                                    <li class="nav-header">ADMINISTRASI</li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.admin.users.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.admin.users.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-users-cog"></i>
-                                            <p>Pengguna Lokal</p>
-                                        </a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a href="{{ route('pos-kantin.users.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.users.*') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-database"></i>
-                                            <p>Pengguna Snapshot</p>
-                                        </a>
-                                    </li>
-                                @endif
-                                <li class="nav-item">
-                                    <a href="{{ route('pos-kantin.sync.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.sync.*') ? 'active' : '' }}">
-                                        <i class="nav-icon fas fa-sync-alt"></i>
-                                        <p>
-                                            Sinkronisasi
-                                            @php
-                                                $syncQueuedCount = (int) ($kanSorSyncNavigationStatus['queuedCount'] ?? $kanSorSyncNavigationStatus['pendingCount'] ?? 0);
-                                                $syncFailedCount = (int) ($kanSorSyncNavigationStatus['failedCount'] ?? 0);
-                                                $syncConflictCount = (int) ($kanSorSyncNavigationStatus['conflictCount'] ?? 0);
-                                                $syncAttentionCount = $syncFailedCount + $syncConflictCount;
-                                            @endphp
-                                            @if ($syncAttentionCount > 0)
-                                                <span class="right badge badge-danger">{{ $syncAttentionCount }}</span>
-                                            @elseif ($syncQueuedCount > 0)
-                                                <span class="right badge badge-warning">{{ $syncQueuedCount }}</span>
-                                            @endif
-                                        </p>
-                                    </a>
-                                </li>
                             @else
                                 <li class="nav-item">
                                     <a href="{{ route('login') }}" class="nav-link {{ request()->routeIs('login') ? 'active' : '' }}">
@@ -458,14 +343,6 @@
                                         <p>{{ __('Login') }}</p>
                                     </a>
                                 </li>
-                                @if (Route::has('register'))
-                                    <li class="nav-item">
-                                        <a href="{{ route('register') }}" class="nav-link {{ request()->routeIs('register') ? 'active' : '' }}">
-                                            <i class="nav-icon fas fa-user-plus"></i>
-                                            <p>{{ __('Register') }}</p>
-                                        </a>
-                                    </li>
-                                @endif
                             @endauth
                         </ul>
                     </nav>
@@ -489,7 +366,7 @@
                                     </div>
                                 @endif
                                 <ol class="breadcrumb float-sm-right">
-                                    <li class="breadcrumb-item"><a href="{{ url('/') }}">Beranda</a></li>
+                                    <li class="breadcrumb-item"><a href="{{ auth()->check() ? route('home') : url('/') }}">Dashboard</a></li>
                                     @hasSection('breadcrumbs')
                                         @yield('breadcrumbs')
                                     @else

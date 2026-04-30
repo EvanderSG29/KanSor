@@ -34,8 +34,8 @@
                         <tr>
                             <th>Tanggal</th>
                             <th>Total kantin</th>
-                            <th>Status III</th>
-                            <th>Status IV</th>
+                            <th>Status Rekap Harian</th>
+                            <th>Status Tutup Buku / Validasi Akhir</th>
                             <th>Catatan</th>
                         </tr>
                     </thead>
@@ -44,8 +44,8 @@
                             <tr>
                                 <td>{{ $total->date->format('d/m/Y') }}</td>
                                 <td>Rp {{ number_format($total->total_amount, 0, ',', '.') }}</td>
-                                <td>{{ strtoupper($total->status_iii) }}</td>
-                                <td>{{ $total->status_iv ? strtoupper($total->status_iv) : '-' }}</td>
+                                <td>{{ ucfirst($total->status_iii) }}</td>
+                                <td>{{ $total->status_iv ? ucfirst($total->status_iv) : '-' }}</td>
                                 <td>{{ $total->taken_note ?: '-' }}</td>
                             </tr>
                         @empty

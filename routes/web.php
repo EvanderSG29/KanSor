@@ -28,12 +28,17 @@ Route::get('/', function () {
         : redirect()->route('login');
 });
 
-Auth::routes();
+Auth::routes([
+    'register' => false,
+]);
 
 Route::middleware('auth')->group(function () {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
     Route::post('/native/desktop/telescope-window', [NativeDesktopController::class, 'openTelescopeWindow'])
         ->name('native.desktop.telescope-window');
+});
+
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home');
 
     Route::prefix('pos-kantin')->name('pos-kantin.')->group(function () {
         Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
@@ -50,7 +55,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
 
-        Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
+        Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
             Route::resource('users', AdminUserController::class)->except('show');
             Route::resource('suppliers', AdminSupplierController::class)->except('show');
             Route::resource('foods', AdminFoodController::class)->except('show');
@@ -63,9 +68,7 @@ Route::middleware('auth')->group(function () {
                 ->name('sales.confirm-canteen-deposited');
         });
 
-        Route::middleware('role:admin,petugas')->group(function () {
-            Route::resource('sales', LocalSaleController::class);
-            Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update']);
-        });
+        Route::resource('sales', LocalSaleController::class);
+        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update']);
     });
 });

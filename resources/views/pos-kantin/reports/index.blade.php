@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Laporan')
-@section('page_subtitle', 'Snapshot ringkasan operasional backend POS Kantin untuk kebutuhan monitoring dan tindak lanjut harian.')
+@section('title', 'Laporan Operasional')
+@section('page_subtitle', 'Ringkasan operasional tersinkron dari server untuk kebutuhan monitoring dan tindak lanjut harian.')
 @section('page_actions')
     <a href="{{ route('home') }}" class="btn btn-outline-primary btn-sm">
         <i class="fas fa-arrow-left mr-1"></i>
@@ -9,8 +9,8 @@
     </a>
 @endsection
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard POS</a></li>
-    <li class="breadcrumb-item active">Laporan</li>
+    <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+    <li class="breadcrumb-item active">Laporan Operasional</li>
 @endsection
 
 @section('content')
@@ -97,21 +97,21 @@
                             <dd>{{ number_format($summary['savingsCount'] ?? 0) }}</dd>
                             <dt>Kembalian pending</dt>
                             <dd>Rp {{ number_format($summary['pendingChangeAmount'] ?? 0, 0, ',', '.') }}</dd>
-                            <dt>User backend</dt>
+                            <dt>Pengguna server</dt>
                             <dd>{{ number_format($summary['userCount'] ?? 0) }}</dd>
                         </dl>
                     </div>
                 </div>
             </div>
             <div class="card-footer text-muted">
-                Snapshot dibuat {{ $generatedAt->format('d M Y H:i') }}.
+                Laporan dibuat {{ $generatedAt->format('d M Y H:i') }}.
             </div>
         </div>
     </div>
     <div class="col-md-5">
         <div class="card card-outline card-warning">
             <div class="card-header">
-                <h3 class="card-title">Outstanding payout</h3>
+                <h3 class="card-title">Payout outstanding</h3>
             </div>
             <div class="card-body p-0">
                 <ul class="list-group list-group-flush">
@@ -126,7 +126,7 @@
                 </ul>
             </div>
             <div class="card-footer">
-                <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="btn btn-outline-warning btn-sm">Kelola pembayaran supplier</a>
+                <a href="{{ route('pos-kantin.supplier-payouts.index') }}" class="btn btn-outline-warning btn-sm">Kelola payout pemasok</a>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Konfirmasi Transaksi POS')
+@section('title', 'Konfirmasi Admin')
 
 @section('content')
 @include('pos-kantin.partials.alerts')
@@ -26,7 +26,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label>Status I</label>
+                <label>Status Pembayaran Pemasok</label>
                 <select name="status_i" class="form-control">
                     <option value="">Semua</option>
                     <option value="menunggu" @selected(($filters['status_i'] ?? '') === 'menunggu')>Menunggu</option>
@@ -34,7 +34,7 @@
                 </select>
             </div>
             <div class="col-md-2">
-                <label>Status II</label>
+                <label>Status Setoran Kantin</label>
                 <select name="status_ii" class="form-control">
                     <option value="">Semua</option>
                     <option value="menunggu" @selected(($filters['status_ii'] ?? '') === 'menunggu')>Menunggu</option>
@@ -56,8 +56,8 @@
                     <th>Petugas</th>
                     <th>Total pemasok</th>
                     <th>Total kantin</th>
-                    <th>Status I</th>
-                    <th>Status II</th>
+                    <th>Status Pembayaran Pemasok</th>
+                    <th>Status Setoran Kantin</th>
                     <th class="text-right">Aksi</th>
                 </tr>
             </thead>
@@ -69,8 +69,8 @@
                         <td>{{ $sale->user?->name ?? '-' }}</td>
                         <td>Rp {{ number_format($sale->total_supplier, 0, ',', '.') }}</td>
                         <td>Rp {{ number_format($sale->total_canteen, 0, ',', '.') }}</td>
-                        <td>{{ strtoupper($sale->status_i) }}</td>
-                        <td>{{ strtoupper($sale->status_ii) }}</td>
+                        <td>{{ ucfirst($sale->status_i) }}</td>
+                        <td>{{ ucfirst($sale->status_ii) }}</td>
                         <td class="text-right">
                             <a href="{{ route('pos-kantin.admin.sales.show', $sale) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
                             <a href="{{ route('pos-kantin.admin.sales.edit', $sale) }}" class="btn btn-sm btn-outline-primary">Koreksi</a>

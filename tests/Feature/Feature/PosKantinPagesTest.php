@@ -184,10 +184,10 @@ test('dashboard page shows local summary for authenticated users', function () {
     $this->actingAs($user)
         ->get('/home')
         ->assertSuccessful()
-        ->assertSee('Ringkasan data lokal POS Kantin')
+        ->assertSee('Ringkasan operasional')
         ->assertSee('Roti Bakar')
-        ->assertSee('Laporan')
-        ->assertSee('Dashboard POS');
+        ->assertSee('Laporan Operasional')
+        ->assertSee('Dashboard');
 });
 
 test('reports page shows local summary snapshot', function () {
@@ -203,7 +203,7 @@ test('reports page shows local summary snapshot', function () {
         ->get(route('pos-kantin.reports.index'))
         ->assertSuccessful()
         ->assertSee('Ringkasan eksekutif')
-        ->assertSee('Kelola pembayaran supplier')
+        ->assertSee('Kelola payout pemasok')
         ->assertSee('Roti Bakar');
 });
 
@@ -252,7 +252,7 @@ test('supplier page shows local supplier data', function () {
     $this->actingAs($user)
         ->get(route('pos-kantin.suppliers.index'))
         ->assertSuccessful()
-        ->assertSee('Master pemasok')
+        ->assertSee('Data pemasok server')
         ->assertSee('Kang Latif');
 });
 
@@ -268,7 +268,7 @@ test('supplier payout page shows local payout data', function () {
     $this->actingAs($user)
         ->get(route('pos-kantin.supplier-payouts.index'))
         ->assertSuccessful()
-        ->assertSee('Outstanding payout')
+        ->assertSee('Payout Pemasok Outstanding')
         ->assertSee('Bu Eva');
 });
 
@@ -284,7 +284,7 @@ test('users page shows local mirrored user data', function () {
     $this->actingAs($user)
         ->get(route('pos-kantin.users.index'))
         ->assertSuccessful()
-        ->assertSee('Daftar pengguna backend')
+        ->assertSee('Data pengguna server')
         ->assertSee('Evander Smid Gidiin');
 });
 

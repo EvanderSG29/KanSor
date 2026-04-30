@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'CRUD Pemasok POS')
+@section('title', 'Kelola Pemasok')
 
 @section('content')
 @include('pos-kantin.partials.alerts')
