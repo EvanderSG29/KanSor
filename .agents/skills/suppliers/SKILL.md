@@ -33,3 +33,29 @@ Skill ini menangani manajemen pemasok lokal POS Kantin, termasuk data kontak, po
 - Relasi: `Supplier hasMany Food`, `Supplier hasMany Sale`.
 - Jangan hard delete pemasok aktif historis.
 - Pemasok nonaktif tidak boleh muncul pada transaksi baru.
+
+## Files Touched
+- app/Models/Supplier.php
+- app/Http/Controllers/PosKantin/Admin/SupplierController.php
+- app/Http/Requests/StoreSupplierRequest.php
+- app/Http/Requests/UpdateSupplierRequest.php
+- resources/views/pos-kantin/suppliers/*.blade.php
+- routes/web.php
+- tests/Feature/Supplier*Test.php
+
+## Data Contract
+- `name`: string, required, max 255
+- `contact_info`: string|null, max 255
+- `percentage_cut`: numeric, required, 0-100
+- `active`: boolean
+
+## Testing Wajib
+- Validasi supplier harus memastikan nama, percentage_cut, dan status.
+- Supplier nonaktif tidak muncul dalam dropdown transaksi.
+- Supplier aktif dapat ditampilkan dan diedit.
+- Soft delete atau nonaktifkan supplier tanpa menghapus histori.
+
+## Acceptance Criteria
+- Supplier dapat ditambah, diperbarui, dan dinonaktifkan.
+- Supplier nonaktif tidak tersedia untuk transaksi baru.
+- Perubahan supplier diselaraskan ke payload sinkronisasi supplier.

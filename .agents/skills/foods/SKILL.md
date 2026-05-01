@@ -34,3 +34,32 @@ Skill ini menangani data makanan lokal yang terhubung ke pemasok, satuan, harga 
 - Relasi: `Food belongsTo Supplier`, `Food hasMany SaleItem`.
 - Makanan dari pemasok nonaktif tidak boleh dipilih pada transaksi baru.
 - Nilai uang disimpan integer, format rupiah hanya di view.
+
+## Files Touched
+- app/Models/Food.php
+- app/Http/Controllers/PosKantin/Admin/FoodController.php
+- app/Http/Controllers/PosKantin/FoodController.php
+- app/Http/Requests/StoreFoodRequest.php
+- app/Http/Requests/UpdateFoodRequest.php
+- resources/views/pos-kantin/foods/*.blade.php
+- routes/web.php
+- tests/Feature/Food*Test.php
+
+## Data Contract
+- `supplier_id`: integer, required, must exist in suppliers
+- `name`: string, required, max 255
+- `unit`: string, required, max 50
+- `default_price`: integer|null, min 0
+- `active`: boolean
+
+## Testing Wajib
+- Validasi supplier dan field food harus lulus.
+- CRUD makanan harus bekerja dengan redirect atau JSON response sukses.
+- Makanan nonaktif tidak tampil pada dropdown transaksi.
+- Relasi `Food belongsTo Supplier` harus teruji.
+
+## Acceptance Criteria
+- Admin dapat membuat, mengedit, dan menonaktifkan makanan.
+- Dropdown makanan pada transaksi hanya menunjukkan makanan aktif dari supplier terpilih.
+- Harga disimpan sebagai integer, bukan string terformat.
+- Makanan nonaktif tidak dapat dipilih untuk transaksi baru.

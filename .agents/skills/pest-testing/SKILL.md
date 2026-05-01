@@ -164,3 +164,22 @@ arch('controllers')
 - Deleting tests without approval
 - Forgetting `assertNoJavaScriptErrors()` in browser tests
 - Prefixing `Feature/` or `Unit/` in `{name}` when using `make:test`
+
+## Files Touched
+- tests/**/*.php
+- app/**/*.php
+- phpunit.xml
+- Pest.php
+
+## Data Contract
+- Test names, factories, fake assertions, and response expectations.
+
+## Testing Wajib
+- Use Pest syntax consistently with existing project tests.
+- Run focused tests with `php artisan test --compact --filter=testName`.
+- Use fakes for external services and events.
+
+## Acceptance Criteria
+- New tests are written in Pest style.
+- Existing test conventions are preserved.
+- Assertions use specific helpers such as `assertSuccessful()`.
