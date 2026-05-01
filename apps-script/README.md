@@ -22,7 +22,7 @@ Folder ini berisi source backend Google Apps Script untuk integrasi POS Kantin d
    - `clasp login`
 4. Buat standalone Apps Script baru, lalu isi `scriptId` di `.clasp.json` lokal.
    - Alternatif yang lebih praktis dari folder ini:
-   - `clasp create --title "KanSor POS Kantin API" --type standalone`
+   - `clasp create --title "KanSor API" --type standalone`
 5. Push source:
    - `clasp push`
 6. Di editor Apps Script, jalankan:
