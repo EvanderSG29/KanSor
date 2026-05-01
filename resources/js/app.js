@@ -16,10 +16,50 @@ if (appShellConfig) {
     const backButton = document.querySelector('[data-app-shell-back]');
     const forwardButton = document.querySelector('[data-app-shell-forward]');
     const refreshButton = document.querySelector('[data-app-shell-refresh]');
+    const nativeWindowControlUrl = appShellConfig.nativeWindowControlUrl ?? null;
+    const appShellCsrfToken = document
+        .querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content') ?? '';
     const historyKey = 'kansor-shell-history';
     const historyIndexKey = 'kansor-shell-history-index';
     const historyTargetIndexKey = 'kansor-shell-history-target-index';
     const defaultMessage = overlayMessage?.textContent?.trim() || 'Sistem sedang memproses...';
+
+    const runNativeWindowControl = async (action) => {
+        if (! nativeWindowControlUrl || ! action) {
+            return;
+        }
+
+        const url = nativeWindowControlUrl.replace('__ACTION__', encodeURIComponent(action));
+
+        await fetch(url, {
+            method: 'POST',
+            headers: {
+                Accept: 'application/json',
+                'X-CSRF-TOKEN': appShellCsrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        });
+    };
+
+    const bindNativeWindowControls = () => {
+        document.querySelectorAll('[data-native-window-control]').forEach((button) => {
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+
+                const action = button.getAttribute('data-native-window-control');
+
+                if (! action) {
+                    return;
+                }
+
+                void runNativeWindowControl(action);
+            });
+        });
+    };
+
+    bindNativeWindowControls();
 
     const normalizeUrl = (url) => {
         const parsedUrl = new URL(url, window.location.origin);

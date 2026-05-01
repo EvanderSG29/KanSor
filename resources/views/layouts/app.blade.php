@@ -1,6 +1,18 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
+    @php
+        $isNativeDesktop = (bool) config('nativephp-internal.running');
+        $scriptSrc = $isNativeDesktop
+            ? "script-src 'self' 'unsafe-inline';"
+            : "script-src 'self' 'unsafe-inline' http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173;";
+        $styleSrc = $isNativeDesktop
+            ? "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;"
+            : "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173;";
+        $connectSrc = $isNativeDesktop
+            ? "connect-src 'self' http://127.0.0.1:8100 http://localhost:8000 http://127.0.0.1:8000;"
+            : "connect-src 'self' http://127.0.0.1:8100 http://localhost:8000 http://127.0.0.1:8000 http://localhost:5173 http://127.0.0.1:5173 http://[::1]:5173 ws://localhost:5173 ws://127.0.0.1:5173 ws://[::1]:5173;";
+    @endphp
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -11,11 +23,11 @@
             base-uri 'self';
             object-src 'none';
             form-action 'self';
-            script-src 'self' 'unsafe-inline';
-            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+            {{ $scriptSrc }}
+            {{ $styleSrc }}
             font-src 'self' https://fonts.gstatic.com data:;
             img-src 'self' data: https:;
-            connect-src 'self' http://127.0.0.1:8100 http://localhost:8000 http://127.0.0.1:8000 http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173;
+            {{ $connectSrc }}
             frame-src 'self' https://github.com https://*.github.com;
         "
     >
@@ -29,13 +41,27 @@
             'setupRunUrl' => app()->environment('local') ? route('setup.run-migrations') : null,
             'setupStatusUrl' => app()->environment('local') ? route('setup.status') : null,
             'hasPendingMigrations' => app(\App\Services\Setup\SchemaReadinessService::class)->hasPendingMigrations(),
-            'isNativeDesktop' => (bool) config('nativephp-internal.running'),
+            'isNativeDesktop' => $isNativeDesktop,
+            'nativeWindowControlUrl' => $isNativeDesktop
+                ? route('native.desktop.window-control', ['action' => '__ACTION__'])
+                : null,
         ];
+        $viteEntryPoints = [
+            'resources/sass/app.scss',
+            'resources/js/app.js',
+        ];
+        $nativeDesktopVite = (new \Illuminate\Foundation\Vite)
+            ->useHotFile(storage_path('framework/nativephp-desktop-build-only.hot'))
+            ->withEntryPoints($viteEntryPoints);
     @endphp
 
     <title>{{ trim($__env->yieldContent('title')) ? trim($__env->yieldContent('title')).' | ' : '' }}{{ config('app.name', 'KanSor') }}</title>
 
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
+    @if ($isNativeDesktop)
+        {{ $nativeDesktopVite }}
+    @else
+        @vite($viteEntryPoints)
+    @endif
     <script>
         window.KanSorAppShell = {{ \Illuminate\Support\Js::from($kanSorAppShell) }};
     </script>
@@ -115,7 +141,7 @@
         }
     </style>
     @auth
-        @if (config('nativephp-internal.running') && $debugUiEnabled)
+        @if ($isNativeDesktop && $debugUiEnabled)
             @php
                 $kanSorNativeDesktop = [
                     'debugbarDrawerEvent' => \App\Events\ToggleDebugbarDrawer::class,
@@ -242,7 +268,7 @@
     @endauth
     @stack('styles')
 </head>
-<body class="@yield('body_class', 'hold-transition sidebar-mini layout-fixed')">
+<body class="@yield('body_class', 'hold-transition sidebar-mini layout-fixed') {{ $isNativeDesktop ? 'kansor-native-desktop' : '' }}">
     @php
         $kanSorSyncNavigationStatus = $kanSorSyncNavigationStatus ?? [];
         $currentUser = Auth::user();
@@ -251,6 +277,11 @@
         $syncConflictCount = (int) ($kanSorSyncNavigationStatus['conflictCount'] ?? 0);
         $syncAttentionCount = $syncFailedCount + $syncConflictCount;
     @endphp
+
+    @if ($isNativeDesktop)
+        @include('layouts.partials.native-titlebar')
+    @endif
+
     @hasSection('auth_page')
         @yield('content')
     @else
@@ -271,19 +302,21 @@
                                 <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">Laporan Operasional</a>
                             </li>
                         @endif
-                        <li class="nav-item d-none d-md-flex align-items-center ml-2">
-                            <div class="btn-group btn-group-sm kansor-shell-nav" role="group" aria-label="Navigasi pengembangan">
-                                <button type="button" class="btn btn-outline-secondary" data-app-shell-back disabled title="Kembali">
-                                    <i class="fas fa-arrow-left"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-app-shell-forward disabled title="Maju">
-                                    <i class="fas fa-arrow-right"></i>
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary" data-app-shell-refresh title="Refresh halaman">
-                                    <i class="fas fa-sync-alt"></i>
-                                </button>
-                            </div>
-                        </li>
+                        @if (! $isNativeDesktop)
+                            <li class="nav-item d-none d-md-flex align-items-center ml-2">
+                                <div class="btn-group btn-group-sm kansor-shell-nav" role="group" aria-label="Navigasi pengembangan">
+                                    <button type="button" class="btn btn-outline-secondary" data-app-shell-back disabled title="Kembali">
+                                        <i class="fas fa-arrow-left"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" data-app-shell-forward disabled title="Maju">
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" data-app-shell-refresh title="Refresh halaman">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        @endif
                     @endauth
                 </ul>
 
@@ -406,7 +439,7 @@
             @endauth
 
             @auth
-                @if (config('nativephp-internal.running') && $debugUiEnabled)
+                @if ($isNativeDesktop && $debugUiEnabled)
                     <div id="kansor-debugbar-drawer" class="kansor-debug-drawer" aria-hidden="true">
                         <div class="kansor-debug-drawer__backdrop" data-debugbar-dismiss></div>
                         <section class="kansor-debug-drawer__panel" aria-label="Fruitcake Debugbar Drawer">

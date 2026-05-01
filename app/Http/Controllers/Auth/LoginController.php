@@ -8,7 +8,11 @@ use App\Services\Auth\PosKantinUserAuthenticator;
 use App\Services\PosKantin\PosKantinSyncService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
+
+use function Illuminate\Support\defer;
 
 class LoginController extends Controller
 {
@@ -74,7 +78,19 @@ class LoginController extends Controller
     protected function authenticated(Request $request, $user)
     {
         if ($this->resolvedLoginMode === 'online') {
-            $this->posKantinSyncService->sync($user, 'login');
+            $syncService = $this->posKantinSyncService;
+
+            defer(function () use ($syncService, $user): void {
+                try {
+                    $syncService->sync($user, 'login');
+                } catch (Throwable $exception) {
+                    Log::warning('Sinkronisasi POS Kantin setelah login gagal dijalankan.', [
+                        'user_id' => $user->getKey(),
+                        'remote_user_id' => $user->remote_user_id,
+                        'message' => $exception->getMessage(),
+                    ]);
+                }
+            });
         }
     }
 

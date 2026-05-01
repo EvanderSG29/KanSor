@@ -1,10 +1,13 @@
 <?php
 
+use App\Exceptions\PosKantinException;
 use App\Models\PosKantinDeviceCredential;
 use App\Models\User;
+use App\Services\PosKantin\PosKantinSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
+use Mockery\MockInterface;
 
 uses(RefreshDatabase::class);
 
@@ -168,4 +171,62 @@ test('it rejects offline login when the local trust already expired', function (
     ])->assertSessionHasErrors('email');
 
     $this->assertGuest();
+});
+
+test('it still redirects home when post-login sync fails', function () {
+    Http::fake([
+        'https://example.test/*' => function (Request $request) {
+            return match ($request['action'] ?? null) {
+                'login' => Http::response([
+                    'success' => true,
+                    'message' => 'Login berhasil.',
+                    'data' => [
+                        'token' => 'session-token',
+                        'expiresAt' => now()->addHour()->toIso8601String(),
+                        'user' => [
+                            'id' => 'USR-001',
+                            'fullName' => 'Evander Smid Gidiin',
+                            'email' => 'evandersmidgidiin@gmail.com',
+                            'role' => 'admin',
+                            'status' => 'aktif',
+                            'authUpdatedAt' => '2026-04-28T10:00:00.000Z',
+                        ],
+                    ],
+                ]),
+                'createTrustedDevice' => Http::response([
+                    'success' => true,
+                    'message' => 'Trusted device dibuat.',
+                    'data' => [
+                        'token' => 'trusted-device-token',
+                        'expiresAt' => now()->addDays(30)->toIso8601String(),
+                        'user' => [
+                            'id' => 'USR-001',
+                        ],
+                    ],
+                ]),
+                default => Http::response([
+                    'success' => true,
+                    'message' => 'OK',
+                    'data' => ['results' => []],
+                ]),
+            };
+        },
+    ]);
+
+    $this->mock(PosKantinSyncService::class, function (MockInterface $mock): void {
+        $mock->shouldReceive('sync')
+            ->andThrow(new PosKantinException('Sinkronisasi login gagal.', [
+                'category' => 'sync',
+            ]));
+    });
+
+    $response = $this->post('/login', [
+        'email' => 'evandersmidgidiin@gmail.com',
+        'password' => '12345678',
+    ]);
+
+    $user = User::query()->where('email', 'evandersmidgidiin@gmail.com')->firstOrFail();
+
+    $this->assertAuthenticatedAs($user);
+    $response->assertRedirect('/home');
 });

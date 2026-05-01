@@ -41,6 +41,10 @@ class NativeAppServiceProvider implements ProvidesPhpIni
     private function openMainWindow(): void
     {
         Window::open(self::MAIN_WINDOW_ID)
+            ->title(config('app.name', 'KanSor'))
+            ->frameless()
+            ->hideMenu()
+            ->backgroundColor('#20272b')
             ->width((int) config('nativephp.window.width', 1440))
             ->height((int) config('nativephp.window.height', 960))
             ->minWidth((int) config('nativephp.window.min_width', 1024))

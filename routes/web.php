@@ -33,6 +33,10 @@ Auth::routes([
     'register' => false,
 ]);
 
+Route::post('/native/desktop/window/{action}', [NativeDesktopController::class, 'controlWindow'])
+    ->where('action', 'minimize|maximize|reload|close')
+    ->name('native.desktop.window-control');
+
 Route::middleware('auth')->group(function () {
     Route::post('/native/desktop/telescope-window', [NativeDesktopController::class, 'openTelescopeWindow'])
         ->name('native.desktop.telescope-window');

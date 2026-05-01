@@ -33,6 +33,12 @@ test('it shares the main sqlite database with nativephp and registers the debug 
     $client = Mockery::mock(Client::class);
     $client->shouldReceive('post')
         ->once()
+        ->with('window/title', [
+            'id' => 'main',
+            'title' => config('app.name', 'KanSor'),
+        ]);
+    $client->shouldReceive('post')
+        ->once()
         ->with('menu', Mockery::on(function (array $payload): bool {
             $debugMenu = collect($payload['items'] ?? [])
                 ->firstWhere('label', 'Debug');
@@ -60,6 +66,14 @@ test('it shares the main sqlite database with nativephp and registers the debug 
         ->toBe(database_path('database.sqlite'))
         ->and(DB::connection('nativephp')->getDatabaseName())
         ->toBe(database_path('database.sqlite'))
+        ->and($mainWindow->title)
+        ->toBe(config('app.name', 'KanSor'))
+        ->and($mainWindow->frame)
+        ->toBeFalse()
+        ->and($mainWindow->autoHideMenuBar)
+        ->toBeTrue()
+        ->and($mainWindow->backgroundColor)
+        ->toBe('#20272b')
         ->and($mainWindow->webPreferences)
         ->toMatchArray(['webviewTag' => true]);
 

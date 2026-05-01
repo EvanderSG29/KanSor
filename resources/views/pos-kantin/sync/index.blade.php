@@ -321,7 +321,13 @@
 
 @push('scripts')
 <script>
-    $(function () {
+    document.addEventListener('DOMContentLoaded', function () {
+        const jQueryInstance = window.jQuery;
+
+        if (! jQueryInstance) {
+            return;
+        }
+
         ['syncConflictDiscardModal', 'syncConflictResendModal'].forEach(function (modalId) {
             const modal = document.getElementById(modalId);
 
@@ -329,7 +335,7 @@
                 return;
             }
 
-            $(modal).on('show.bs.modal', function (event) {
+            jQueryInstance(modal).on('show.bs.modal', function (event) {
                 const trigger = event.relatedTarget;
 
                 if (! trigger) {
