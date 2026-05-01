@@ -102,6 +102,8 @@ test('creating sale sends save transaction payload for each sale item with food 
             && (string) ($request['payload']->inputByUserId ?? '') === (string) $petugas->getKey()
             && ($request['payload']->inputByName ?? null) === $petugas->name
             && (string) ($request['payload']->supplierId ?? '') === (string) $supplier->getKey()
+            && (string) ($request['payload']->clientSaleId ?? '') === (string) $sale->getKey()
+            && (string) ($request['payload']->clientSaleItemId ?? '') === (string) $saleItem->getKey()
             && (string) ($request['payload']->foodId ?? '') === (string) $food->getKey()
             && ($request['payload']->itemName ?? null) === 'Bakwan'
             && (int) ($request['payload']->quantity ?? -1) === 10
@@ -208,6 +210,8 @@ test('updating sale deletes removed transaction rows and saves current sale item
         return ($request['action'] ?? null) === 'saveTransaction'
             && ($request['payload']->id ?? null) === 'SALEITEM-'.$keptItem->getKey()
             && (string) ($request['payload']->foodId ?? '') === (string) $foodA->getKey()
+            && (string) ($request['payload']->clientSaleId ?? '') === (string) $sale->getKey()
+            && (string) ($request['payload']->clientSaleItemId ?? '') === (string) $keptItem->getKey()
             && ($request['payload']->unitName ?? null) === 'bungkus'
             && (int) ($request['payload']->grossSales ?? -1) === 48000;
     });
