@@ -290,6 +290,35 @@
     </div>
 </div>
 
+
+<div class="card mt-3">
+    <div class="card-header"><h3 class="card-title">Sync outbox terpilih</h3></div>
+    <form method="POST" action="{{ route('pos-kantin.sync.run-selected') }}">
+        @csrf
+        <div class="card-body table-responsive p-0">
+            <table class="table table-sm mb-0">
+                <thead><tr><th style="width:40px;">Pilih</th><th>ID</th><th>Aksi</th><th>Entitas</th><th>Status</th></tr></thead>
+                <tbody>
+                @forelse ($pendingOutboxItems as $outbox)
+                    <tr>
+                        <td><input type="checkbox" name="selected_outbox_ids[]" value="{{ $outbox->id }}"></td>
+                        <td>{{ $outbox->id }}</td>
+                        <td>{{ $outbox->action }}</td>
+                        <td>{{ $outbox->entity_type }}#{{ $outbox->entity_remote_id }}</td>
+                        <td><x-pos.status-badge :status="$outbox->status" context="sync-outbox" /></td>
+                    </tr>
+                @empty
+                    <tr><td colspan="5" class="text-center text-muted py-3">Tidak ada outbox pending/failed/conflict.</td></tr>
+                @endforelse
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            <button type="submit" class="btn btn-outline-primary btn-sm">Sync Selected</button>
+        </div>
+    </form>
+</div>
+
 <div class="card">
     <div class="card-header">
         <h3 class="card-title">Riwayat sinkronisasi terbaru</h3>

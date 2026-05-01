@@ -120,6 +120,7 @@ class PosKantinLocalStore
         return [
             'users' => 'pos_users',
             'suppliers' => 'pos_suppliers',
+            'foods' => 'pos_foods',
             'buyers' => 'pos_buyers',
             'transactions' => 'pos_transactions',
             'savings' => 'pos_savings',

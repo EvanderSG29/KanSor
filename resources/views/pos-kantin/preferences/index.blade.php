@@ -31,6 +31,12 @@
                         <label>Baris per halaman</label>
                         <input type="number" min="5" max="100" name="rows_per_page" class="form-control" value="{{ old('rows_per_page', $preferences['rows_per_page']) }}" required>
                     </div>
+                                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>Durasi login offline (hari)</label>
+                        <input type="number" min="1" max="{{ (int) config('services.pos_kantin.offline_login_days_max', 30) }}" name="offline_session_days" class="form-control" value="{{ old('offline_session_days', $preferences['offline_session_days']) }}" required>
+                    </div>
+                </div>
                 </div>
             </div>
         </div>

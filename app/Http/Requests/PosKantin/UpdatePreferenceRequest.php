@@ -15,7 +15,7 @@ class UpdatePreferenceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'key' => ['required', Rule::in(['sync_interval', 'theme', 'rows_per_page'])],
+            'key' => ['required', Rule::in(['sync_interval', 'theme', 'rows_per_page', 'offline_session_days'])],
             'value' => ['nullable', 'string', 'max:255'],
         ];
     }

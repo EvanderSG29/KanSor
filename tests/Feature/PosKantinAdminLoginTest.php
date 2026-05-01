@@ -16,6 +16,7 @@ beforeEach(function () {
         'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
         'services.pos_kantin.device_label' => 'KanSor Test Device',
         'services.pos_kantin.offline_login_days' => 30,
+        'services.pos_kantin.offline_login_days_max' => 45,
     ]);
 
     Http::preventStrayRequests();
@@ -229,4 +230,75 @@ test('it still redirects home when post-login sync fails', function () {
 
     $this->assertAuthenticatedAs($user);
     $response->assertRedirect('/home');
+});
+
+
+test('it clamps offline login duration based on user preference and max limit', function () {
+    \App\Models\Preference::query()->create([
+        'user_id' => 1,
+        'key' => 'offline_session_days',
+        'value' => '90',
+    ]);
+
+    Http::fake([
+        'https://example.test/*' => function (Request $request) {
+            return match ($request['action'] ?? null) {
+                'login' => Http::response([
+                    'success' => true,
+                    'message' => 'Login berhasil.',
+                    'data' => [
+                        'token' => 'session-token',
+                        'expiresAt' => now()->addHour()->toIso8601String(),
+                        'user' => [
+                            'id' => 'USR-009',
+                            'fullName' => 'Clamp User',
+                            'email' => 'clamp@example.com',
+                            'role' => 'petugas',
+                            'status' => 'aktif',
+                            'authUpdatedAt' => '2026-04-28T10:00:00.000Z',
+                        ],
+                    ],
+                ]),
+                'createTrustedDevice' => Http::response([
+                    'success' => true,
+                    'message' => 'Trusted device dibuat.',
+                    'data' => ['token' => 'trusted-device-token', 'expiresAt' => now()->addDays(30)->toIso8601String()],
+                ]),
+                default => Http::response(['success' => true, 'data' => ['results' => []]]),
+            };
+        },
+    ]);
+
+    $this->post('/login', ['email' => 'clamp@example.com', 'password' => '12345678'])->assertRedirect('/home');
+
+    $user = User::query()->where('email', 'clamp@example.com')->firstOrFail();
+    expect($user->offline_login_expires_at)->not->toBeNull();
+});
+
+test('it invalidates offline login when remote auth changed from local credential snapshot', function () {
+    Http::fake(['https://example.test/*' => Http::failedConnection()]);
+
+    $user = User::factory()->create([
+        'email' => 'changed@example.com',
+        'password' => '12345678',
+        'remote_user_id' => 'USR-CHANGED',
+        'role' => 'petugas',
+        'status' => 'aktif',
+        'remote_auth_updated_at' => '2026-04-29T00:00:00.000Z',
+        'offline_login_expires_at' => now()->addDays(5),
+    ]);
+
+    PosKantinDeviceCredential::query()->create([
+        'scope_owner_user_id' => $user->getKey(),
+        'remote_user_id' => 'USR-CHANGED',
+        'email' => 'changed@example.com',
+        'trusted_device_token' => 'trusted-token',
+        'trusted_device_expires_at' => now()->addDays(5),
+        'remote_auth_updated_at' => '2026-04-30T00:00:00.000Z',
+    ]);
+
+    $this->post('/login', ['email' => 'changed@example.com', 'password' => '12345678'])
+        ->assertSessionHasErrors('email');
+
+    $this->assertGuest();
 });
