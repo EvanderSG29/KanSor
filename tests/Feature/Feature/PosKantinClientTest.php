@@ -24,7 +24,7 @@ test('it can read backend health', function () {
             'success' => true,
             'message' => 'POS Kantin API aktif.',
             'data' => [
-                'appName' => 'KanSor POS Kantin API',
+                'appName' => 'KanSor API',
                 'version' => '0.1.0',
                 'configuredSpreadsheet' => true,
             ],
@@ -33,7 +33,7 @@ test('it can read backend health', function () {
 
     $health = app(PosKantinClient::class)->health();
 
-    expect($health['appName'])->toBe('KanSor POS Kantin API')
+    expect($health['appName'])->toBe('KanSor API')
         ->and($health['configuredSpreadsheet'])->toBeTrue();
 });
 

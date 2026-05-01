@@ -58,6 +58,7 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
             ->middleware('throttle:sync-auto')
             ->name('sync.auto');
         Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name('sync.run');
+        Route::post('/sinkronisasi/jalankan-terpilih', [SyncController::class, 'runSelected'])->name('sync.run-selected');
         Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');

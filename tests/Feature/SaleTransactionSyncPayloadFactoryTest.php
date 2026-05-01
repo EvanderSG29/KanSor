@@ -59,6 +59,8 @@ test('sale transaction sync payload maps a sale item into remote transaction pay
         'inputByUserId' => '12',
         'inputByName' => 'Petugas Satu',
         'supplierId' => '34',
+        'clientSaleId' => '78',
+        'clientSaleItemId' => '91',
         'foodId' => '56',
         'itemName' => 'Bakwan',
         'unitName' => 'pcs',
