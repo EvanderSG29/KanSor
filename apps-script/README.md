@@ -114,3 +114,51 @@ Catatan:
 - PIN lama masih didukung sementara lewat `pin_hash` untuk migrasi.
 - OTP reset password dikirim lewat `MailApp.sendEmail` dari akun deployer Apps Script.
 - Jangan simpan script ID live, spreadsheet ID live, atau password admin ke git.
+
+## Verifikasi CLASP & API (Patch 8)
+
+### Login `clasp` dengan project scopes
+
+1. `clasp logout`
+2. `clasp login --use-project-scopes --creds client_secret.json`
+3. `clasp show-authorized-user --json`
+
+Jika `clasp run` gagal karena API executable belum aktif, deploy dulu dari editor Apps Script:
+
+- `Deploy > New deployment > API Executable`
+
+### Setup spreadsheet aplikasi
+
+Jalankan di Apps Script editor:
+
+- `setupApplicationSpreadsheet()`
+
+### Set password user by email
+
+Dari CLI:
+
+- `clasp run setUserPasswordByEmail -p "[\"user@example.com\",\"PASSWORD_BARU\"]"`
+
+### Contoh curl health/login/syncPull/syncPush
+
+```bash
+curl "$POS_KANTIN_API_URL?action=health"
+
+curl -X POST "$POS_KANTIN_API_URL" \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"login","payload":{"email":"admin@kansor.local","password":"12345678"}}'
+
+curl -X POST "$POS_KANTIN_API_URL" \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"syncPull","token":"SESSION_TOKEN","payload":{"since":{"users":"","suppliers":"","foods":"","transactions":""}}}'
+
+curl -X POST "$POS_KANTIN_API_URL" \
+  -H 'Content-Type: application/json' \
+  -d '{"action":"syncPush","token":"SESSION_TOKEN","payload":{"mutations":[{"clientMutationId":"demo-1","action":"saveSupplier","entityType":"supplier","payload":{"id":"SUP-001","supplierName":"Demo"}}]}}'
+```
+
+### Fallback jika OAuth/API Executable dibatasi
+
+- Pakai editor Apps Script untuk run manual function (`setupApplicationSpreadsheet`, `setUserPasswordByEmail`).
+- Untuk verifikasi endpoint, gunakan Web App deployment URL langsung via `curl`.
+- Jika `clasp run` tidak bisa dipakai di mesin tertentu, lakukan release dari CI/mesin admin yang punya OAuth & Script API executable permissions.
