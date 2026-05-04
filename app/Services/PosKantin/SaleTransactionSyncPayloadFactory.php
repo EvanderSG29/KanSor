@@ -33,6 +33,8 @@ class SaleTransactionSyncPayloadFactory
             'inputByUserId' => (string) $sale->user_id,
             'inputByName' => $sale->user?->name,
             'supplierId' => (string) $sale->supplier_id,
+            'clientSaleId' => (string) $sale->getKey(),
+            'clientSaleItemId' => (string) $item->getKey(),
             'foodId' => (string) $item->food_id,
             'itemName' => $item->food?->name,
             'unitName' => $item->unit,

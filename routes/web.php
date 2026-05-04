@@ -42,10 +42,18 @@ Route::middleware('auth')->group(function () {
         ->name('native.desktop.telescope-window');
 });
 
+
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::redirect('/pos-kantin', '/kansor', 301);
+    Route::get('/pos-kantin/{path}', function (string $path) {
+        return redirect('/kansor/'.$path, 301);
+    })->where('path', '.*');
+});
+
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(function () {
+    Route::prefix('kansor')->name('pos-kantin.')->group(function () {
         Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/simpanan', [SavingController::class, 'index'])->name('savings.index');
         Route::get('/pemasok', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -58,6 +66,7 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
             ->middleware('throttle:sync-auto')
             ->name('sync.auto');
         Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name('sync.run');
+        Route::post('/sinkronisasi/jalankan-terpilih', [SyncController::class, 'runSelected'])->name('sync.run-selected');
         Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');

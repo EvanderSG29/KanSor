@@ -22,6 +22,7 @@ class PreferenceController extends Controller
                 'sync_interval' => $preferences['sync_interval'] ?? '60',
                 'theme' => $preferences['theme'] ?? 'system',
                 'rows_per_page' => $preferences['rows_per_page'] ?? '10',
+                'offline_session_days' => $preferences['offline_session_days'] ?? (string) config('services.pos_kantin.offline_login_days', 30),
             ],
         ]);
     }

@@ -22,6 +22,7 @@ class SyncController extends Controller
             'conflicts' => $posKantinSyncService->unresolvedConflicts($user),
             'recentRuns' => $posKantinSyncService->recentRuns($user),
             'syncStatus' => $posKantinSyncService->statusForUser($user),
+            'pendingOutboxItems' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->whereIn('status', ['pending', 'failed', 'conflict'])->latest()->limit(50)->get(),
         ]);
     }
 
@@ -48,11 +49,33 @@ class SyncController extends Controller
 
     public function run(Request $request, PosKantinSyncService $posKantinSyncService): RedirectResponse
     {
-        $result = $posKantinSyncService->sync($request->user(), 'manual');
+        $selectedOutboxIds = collect((array) $request->input('selected_outbox_ids', []))->map(fn (mixed $id): int => (int) $id)->filter(fn (int $id): bool => $id > 0)->values()->all();
+        $trigger = $selectedOutboxIds === [] ? 'manual' : 'manual_selected';
+        $result = $posKantinSyncService->sync($request->user(), $trigger, $selectedOutboxIds);
 
         return back()->with($result['ok'] ? 'status' : 'error', $result['ok']
             ? 'Sinkronisasi berhasil dijalankan.'
             : ($result['message'] ?? 'Sinkronisasi gagal dijalankan.'));
+    }
+
+
+    public function runSelected(Request $request, PosKantinSyncService $posKantinSyncService): RedirectResponse
+    {
+        $selectedOutboxIds = collect((array) $request->input('selected_outbox_ids', []))
+            ->map(fn (mixed $id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->values()
+            ->all();
+
+        if ($selectedOutboxIds === []) {
+            return back()->with('error', 'Pilih minimal satu antrean outbox untuk sinkronisasi terpilih.');
+        }
+
+        $result = $posKantinSyncService->sync($request->user(), 'manual_selected', $selectedOutboxIds);
+
+        return back()->with($result['ok'] ? 'status' : 'error', $result['ok']
+            ? 'Sinkronisasi terpilih berhasil dijalankan.'
+            : ($result['message'] ?? 'Sinkronisasi terpilih gagal dijalankan.'));
     }
 
     public function retryFailed(Request $request, PosKantinSyncService $posKantinSyncService): RedirectResponse

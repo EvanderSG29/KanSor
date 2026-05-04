@@ -57,6 +57,16 @@ test('sync service stores initial pull into local mirrors', function () {
                             'createdAt' => '2026-04-28T09:00:00.000Z',
                             'updatedAt' => '2026-04-28T10:00:00.000Z',
                         ]],
+                        'foods' => [[
+                            'id' => 'FOD-001',
+                            'supplierId' => 'SUP-001',
+                            'foodName' => 'Nasi Goreng',
+                            'unitName' => 'Porsi',
+                            'defaultPrice' => 12000,
+                            'isActive' => true,
+                            'createdAt' => '2026-04-28T09:00:00.000Z',
+                            'updatedAt' => '2026-04-28T10:30:00.000Z',
+                        ]],
                         'transactions' => [],
                         'dailyFinance' => [],
                         'changeEntries' => [],
@@ -66,6 +76,7 @@ test('sync service stores initial pull into local mirrors', function () {
                             'buyers' => '',
                             'savings' => '',
                             'suppliers' => '2026-04-28T10:00:00.000Z',
+                            'foods' => '2026-04-28T10:30:00.000Z',
                             'transactions' => '',
                             'dailyFinance' => '',
                             'changeEntries' => '',
@@ -103,7 +114,9 @@ test('sync service stores initial pull into local mirrors', function () {
 
     expect($result['ok'])->toBeTrue()
         ->and(app(PosKantinLocalStore::class)->payloads($user, 'suppliers'))->toHaveCount(1)
-        ->and(app(PosKantinLocalStore::class)->payloads($user, 'users'))->toHaveCount(1);
+        ->and(app(PosKantinLocalStore::class)->payloads($user, 'users'))->toHaveCount(1)
+        ->and(app(PosKantinLocalStore::class)->payloads($user, 'foods'))->toHaveCount(1)
+        ->and(DB::table('pos_sync_cursors')->where('scope_owner_user_id', $user->getKey())->where('resource', 'foods')->value('cursor'))->toBe('2026-04-28T10:30:00.000Z');
 });
 
 test('sync service records conflicts from sync push', function () {
@@ -145,6 +158,7 @@ test('sync service records conflicts from sync push', function () {
                         'buyers' => [],
                         'savings' => [],
                         'suppliers' => [],
+                        'foods' => [],
                         'transactions' => [],
                         'dailyFinance' => [],
                         'changeEntries' => [],
@@ -154,6 +168,7 @@ test('sync service records conflicts from sync push', function () {
                             'buyers' => '',
                             'savings' => '',
                             'suppliers' => '',
+                            'foods' => '',
                             'transactions' => '',
                             'dailyFinance' => '',
                             'changeEntries' => '',
