@@ -19,7 +19,7 @@ const CONFIG = {
       role: "admin",
       status: "aktif",
       classGroup: "",
-      notes: "Admin seed awal backend POS Kantin KanSor.",
+      notes: "Admin seed awal backend KanSor KanSor.",
     },
   ],
   SHEETS: {
