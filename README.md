@@ -87,6 +87,7 @@ php artisan native:build win
 
 ## Sinkronisasi POS
 
+- Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
 - Status sinkronisasi tersedia di halaman `pos-kantin/sinkronisasi`.
 - Mendukung:
   - Sync semua antrean.

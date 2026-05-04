@@ -42,10 +42,18 @@ Route::middleware('auth')->group(function () {
         ->name('native.desktop.telescope-window');
 });
 
+
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::redirect('/pos-kantin', '/kansor', 301);
+    Route::get('/pos-kantin/{path}', function (string $path) {
+        return redirect('/kansor/'.$path, 301);
+    })->where('path', '.*');
+});
+
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(function () {
+    Route::prefix('kansor')->name('pos-kantin.')->group(function () {
         Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/simpanan', [SavingController::class, 'index'])->name('savings.index');
         Route::get('/pemasok', [SupplierController::class, 'index'])->name('suppliers.index');
