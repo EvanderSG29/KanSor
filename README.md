@@ -1,6 +1,6 @@
 # KanSor
 
-KanSor adalah aplikasi **desktop-native offline-first** untuk operasional POS kantin sekolah. Proyek ini dibangun dengan Laravel 12 dan NativePHP/Electron, dengan backend sinkronisasi berbasis Google Apps Script.
+KanSor adalah aplikasi **desktop-native offline-first** untuk operasional kasir sekolah. Proyek ini dibangun dengan Laravel 12 dan NativePHP/Electron, dengan backend sinkronisasi berbasis Google Apps Script.
 
 ## Tujuan Produk
 
@@ -14,7 +14,7 @@ KanSor adalah aplikasi **desktop-native offline-first** untuk operasional POS ka
 
 ### 1) Aplikasi Desktop (Laravel + NativePHP)
 - Menyimpan data operasional lokal (mirror + outbox).
-- Menjalankan CRUD lokal untuk modul POS.
+- Menjalankan CRUD lokal untuk modul KanSor.
 - Mengelola antrean sinkronisasi dan konflik.
 
 ### 2) Backend Sinkronisasi (Google Apps Script)
@@ -85,7 +85,7 @@ php artisan native:build win
 
 > Catatan: fokus deployment proyek ini adalah desktop-native, bukan web hosting sebagai target utama.
 
-## Sinkronisasi POS
+## Sinkronisasi KanSor
 
 - Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
 - Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
@@ -137,12 +137,12 @@ php artisan native:build win
 
 ## Struktur Direktori Penting
 
-- `app/Services/PosKantin/` — logic sinkronisasi, mirror, outbox, payload.
+- Backend service folder untuk sinkronisasi, mirror, outbox, dan payload.
 - `app/Services/Auth/` — autentikasi online/offline.
 - `apps-script/` — source Google Apps Script backend.
 - `database/migrations/` — skema database lokal.
 - `database/seeders/` — data dummy/seeding modular.
-- `resources/views/kansor/` — UI POS dan sinkronisasi.
+- `resources/views/kansor/` — UI KanSor dan sinkronisasi.
 
 ## Kontribusi
 

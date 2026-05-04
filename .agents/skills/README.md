@@ -1,4 +1,4 @@
-# Daftar Skill POS KanSor
+# Daftar Skill KanSor
 
 Skill yang tersedia sekarang di folder `.agents/skills/`:
 
@@ -39,7 +39,7 @@ Skill yang tersedia sekarang di folder `.agents/skills/`:
   Path: `.agents/skills/transactions/SKILL.md`
 
 - `reports`
-  Deskripsi singkat: Skill untuk rekap kantin, agregasi harian/bulanan, dan laporan per pemasok.
+  Deskripsi singkat: Skill untuk rekap keuangan, agregasi harian/bulanan, dan laporan per pemasok.
   Path: `.agents/skills/reports/SKILL.md`
 
 - `users`
