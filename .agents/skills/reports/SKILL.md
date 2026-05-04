@@ -33,3 +33,27 @@ Skill ini menangani rekap total kantin, agregasi harian dan bulanan, ringkasan p
 - Service terkait: `CanteenTotalAggregationService`.
 - Hindari kalkulasi total harian tersebar di banyak tempat.
 - Gunakan total `sales.total_canteen` sebagai sumber agregasi.
+
+## Files Touched
+- app/Models/CanteenTotal.php
+- app/Http/Controllers/PosKantin/Admin/CanteenTotalController.php
+- app/Services/CanteenTotalAggregationService.php
+- app/Console/Commands/RecalculateCanteenTotals.php
+- resources/views/pos-kantin/reports/*.blade.php
+- tests/Feature/Reports*Test.php
+
+## Data Contract
+- `date`: date|null
+- `from`: date|null
+- `to`: date|null
+- `month`: string|null (`YYYY-MM`)
+
+## Testing Wajib
+- Test agregasi ulang per hari dan per bulan.
+- Test output ringkasan per pemasok.
+- Test perhitungan `canteen_totals` ketika transaksi berubah.
+
+## Acceptance Criteria
+- Admin dapat melihat ringkasan total harian dan bulanan.
+- Command recalculation memperbarui `canteen_totals` dengan benar.
+- Laporan menggunakan nilai `sales.total_canteen` sebagai sumber tunggal.

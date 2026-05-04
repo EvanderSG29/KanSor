@@ -18,6 +18,12 @@ Use `search-docs` for detailed Pest 4 patterns and documentation.
 
 All tests must be written using Pest. Use `php artisan make:test --pest {name}`.
 
+The `{name}` argument should include only the path and test name, but should not include the test suite.
+- Incorrect: `php artisan make:test --pest Feature/SomeFeatureTest` will generate `tests/Feature/Feature/SomeFeatureTest.php`
+- Correct: `php artisan make:test --pest SomeControllerTest` will generate `tests/Feature/SomeControllerTest.php`
+- Incorrect: `php artisan make:test --pest --unit Unit/SomeServiceTest` will generate `tests/Unit/Unit/SomeServiceTest.php`
+- Correct: `php artisan make:test --pest --unit SomeServiceTest` will generate `tests/Unit/SomeServiceTest.php`
+
 ### Test Organization
 
 - Unit/Feature tests: `tests/Feature` and `tests/Unit` directories.
@@ -157,3 +163,23 @@ arch('controllers')
 - Forgetting datasets for repetitive validation tests
 - Deleting tests without approval
 - Forgetting `assertNoJavaScriptErrors()` in browser tests
+- Prefixing `Feature/` or `Unit/` in `{name}` when using `make:test`
+
+## Files Touched
+- tests/**/*.php
+- app/**/*.php
+- phpunit.xml
+- Pest.php
+
+## Data Contract
+- Test names, factories, fake assertions, and response expectations.
+
+## Testing Wajib
+- Use Pest syntax consistently with existing project tests.
+- Run focused tests with `php artisan test --compact --filter=testName`.
+- Use fakes for external services and events.
+
+## Acceptance Criteria
+- New tests are written in Pest style.
+- Existing test conventions are preserved.
+- Assertions use specific helpers such as `assertSuccessful()`.

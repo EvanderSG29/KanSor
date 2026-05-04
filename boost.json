@@ -3,6 +3,7 @@
         "codex",
         "amp"
     ],
+    "cloud": false,
     "guidelines": true,
     "mcp": true,
     "nightwatch_mcp": false,
@@ -10,6 +11,14 @@
     "skills": [
         "laravel-best-practices",
         "pest-testing",
-        "tailwindcss-development"
+        "tailwindcss-development",
+        "offline-auth",
+        "sync",
+        "desktop-native",
+        "suppliers",
+        "foods",
+        "transactions",
+        "reports",
+        "users"
     ]
 }

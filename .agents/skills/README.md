@@ -1,31 +1,49 @@
 # Daftar Skill POS KanSor
 
-- `users`
-  Deskripsi singkat: Skill untuk CRUD pengguna admin dan petugas lokal.
-  Path: `.agents/skills/users/skill.md`
-  Digunakan saat: membuat atau mengubah modul pengguna, validasi role, status aktif, dan guard admin.
+Skill yang tersedia sekarang di folder `.agents/skills/`:
+
+- `laravel-best-practices`
+  Deskripsi singkat: Aturan umum Laravel untuk backend, query, validation, policy, service, dan migration.
+  Path: `.agents/skills/laravel-best-practices/SKILL.md`
+
+- `pest-testing`
+  Deskripsi singkat: Aturan dan pola penulisan tes Pest untuk Laravel di projek ini.
+  Path: `.agents/skills/pest-testing/SKILL.md`
+
+- `tailwindcss-development`
+  Deskripsi singkat: Panduan Tailwind CSS v4 untuk UI Blade dan komponen frontend.
+  Path: `.agents/skills/tailwindcss-development/SKILL.md`
+
+- `offline-auth`
+  Deskripsi singkat: Skill untuk login online/offline, trusted device, dan durasi sesi offline.
+  Path: `.agents/skills/offline-auth/SKILL.md`
+
+- `sync`
+  Deskripsi singkat: Skill untuk selective/manual sync, outbox filtering, dan conflict resolution.
+  Path: `.agents/skills/sync/SKILL.md`
+
+- `desktop-native`
+  Deskripsi singkat: Skill untuk fitur NativePHP desktop, titlebar custom, dan window control.
+  Path: `.agents/skills/desktop-native/SKILL.md`
 
 - `suppliers`
-  Deskripsi singkat: Skill untuk manajemen data pemasok beserta status aktif dan potongan kantin.
-  Path: `.agents/skills/suppliers/skill.md`
-  Digunakan saat: membuat CRUD pemasok, filter pemasok aktif, dan sinkronisasi supplier.
+  Deskripsi singkat: Skill untuk manajemen data pemasok dan status aktif.
+  Path: `.agents/skills/suppliers/SKILL.md`
 
 - `foods`
-  Deskripsi singkat: Skill untuk manajemen makanan yang terhubung ke pemasok.
-  Path: `.agents/skills/foods/skill.md`
-  Digunakan saat: membuat CRUD makanan, validasi relasi supplier, dan dropdown makanan transaksi.
+  Deskripsi singkat: Skill untuk manajemen data makanan dan relasi supplier.
+  Path: `.agents/skills/foods/SKILL.md`
 
 - `transactions`
-  Deskripsi singkat: Skill untuk input transaksi harian petugas, koreksi admin, dan perhitungan total.
-  Path: `.agents/skills/transactions/skill.md`
-  Digunakan saat: menulis form request transaksi, service perhitungan, policy sale, atau konfirmasi status.
+  Deskripsi singkat: Skill untuk input transaksi, item penjualan, dan perhitungan total.
+  Path: `.agents/skills/transactions/SKILL.md`
 
 - `reports`
-  Deskripsi singkat: Skill untuk rekap harian, bulanan, total kantin, dan ringkasan pendapatan.
-  Path: `.agents/skills/reports/skill.md`
-  Digunakan saat: membuat laporan kantin, command recalculation, dan agregasi per pemasok.
+  Deskripsi singkat: Skill untuk rekap kantin, agregasi harian/bulanan, dan laporan per pemasok.
+  Path: `.agents/skills/reports/SKILL.md`
 
-- `rencana-rancangan`
-  Deskripsi singkat: Referensi rencana implementasi dan integrasi backend POS Kantin.
-  Path: `.agents/skills/rencana-rancangan/PLAN.md`
-  Digunakan saat: menyelaraskan patch implementasi dengan roadmap proyek.
+- `users`
+  Deskripsi singkat: Skill untuk CRUD user lokal admin/petugas dan sinkronisasi user.
+  Path: `.agents/skills/users/SKILL.md`
+
+Catatan: dokumen perencanaan sekali pakai kini berada di `.agents/plans/` untuk mencegah bercampurnya rencana dengan skill reusable.
