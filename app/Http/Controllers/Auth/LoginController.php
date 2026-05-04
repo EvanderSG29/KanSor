@@ -84,7 +84,7 @@ class LoginController extends Controller
                 try {
                     $syncService->sync($user, 'login');
                 } catch (Throwable $exception) {
-                    Log::warning('Sinkronisasi POS Kantin setelah login gagal dijalankan.', [
+                    Log::warning('Sinkronisasi KanSor setelah login gagal dijalankan.', [
                         'user_id' => $user->getKey(),
                         'remote_user_id' => $user->remote_user_id,
                         'message' => $exception->getMessage(),

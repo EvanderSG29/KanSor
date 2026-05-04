@@ -42,10 +42,33 @@ Route::middleware('auth')->group(function () {
         ->name('native.desktop.telescope-window');
 });
 
+
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::redirect('/pos-kantin', '/kansor', 301);
+    Route::get('/pos-kantin/{path}', function (string $path) {
+        return redirect('/kansor/'.$path, 301);
+    })->where('path', '.*');
+});
+
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(function () {
+    $registerKanSorRoutes = function (string $namePrefix): void {
+        Route::get('/transaksi', [TransactionController::class, 'index'])->name($namePrefix.'transactions.index');
+        Route::get('/simpanan', [SavingController::class, 'index'])->name($namePrefix.'savings.index');
+        Route::get('/pemasok', [SupplierController::class, 'index'])->name($namePrefix.'suppliers.index');
+        Route::get('/pembayaran', [SupplierPayoutController::class, 'index'])->name($namePrefix.'supplier-payouts.index');
+        Route::get('/laporan', [ReportController::class, 'index'])->name($namePrefix.'reports.index');
+        Route::get('/pengguna', [UserController::class, 'index'])->name($namePrefix.'users.index');
+        Route::get('/sinkronisasi', [SyncController::class, 'index'])->name($namePrefix.'sync.index');
+        Route::get('/sinkronisasi/status', [SyncController::class, 'status'])->name($namePrefix.'sync.status');
+        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])->middleware('throttle:sync-auto')->name($namePrefix.'sync.auto');
+        Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name($namePrefix.'sync.run');
+        Route::post('/sinkronisasi/jalankan-terpilih', [SyncController::class, 'runSelected'])->name($namePrefix.'sync.run-selected');
+        Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name($namePrefix.'sync.retry');
+        Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name($namePrefix.'sync.outbox.discard');
+        Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name($namePrefix.'sync.outbox.resend');
+    Route::prefix('kansor')->name('pos-kantin.')->group(function () {
         Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/simpanan', [SavingController::class, 'index'])->name('savings.index');
         Route::get('/pemasok', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -63,21 +86,21 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
 
-        Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
+        Route::prefix('admin')->name($namePrefix.'admin.')->middleware('role:admin')->group(function () use ($namePrefix): void {
             Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
-            Route::resource('users', AdminUserController::class)->except('show');
-            Route::resource('suppliers', AdminSupplierController::class)->except('show');
-            Route::resource('foods', AdminFoodController::class)->except('show');
-            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
-            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index']);
-
-            Route::patch('sales/{sale}/confirm-supplier-paid', [AdminSaleController::class, 'confirmSupplierPaid'])
-                ->name('sales.confirm-supplier-paid');
-            Route::patch('sales/{sale}/confirm-canteen-deposited', [AdminSaleController::class, 'confirmCanteenDeposited'])
-                ->name('sales.confirm-canteen-deposited');
+            Route::resource('users', AdminUserController::class)->except('show')->names($namePrefix.'admin.users');
+            Route::resource('suppliers', AdminSupplierController::class)->except('show')->names($namePrefix.'admin.suppliers');
+            Route::resource('foods', AdminFoodController::class)->except('show')->names($namePrefix.'admin.foods');
+            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->names($namePrefix.'admin.sales');
+            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index'])->names($namePrefix.'admin.canteen-totals');
+            Route::patch('sales/{sale}/confirm-supplier-paid', [AdminSaleController::class, 'confirmSupplierPaid'])->name('sales.confirm-supplier-paid');
+            Route::patch('sales/{sale}/confirm-canteen-deposited', [AdminSaleController::class, 'confirmCanteenDeposited'])->name('sales.confirm-canteen-deposited');
         });
 
-        Route::resource('sales', LocalSaleController::class);
-        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update']);
-    });
+        Route::resource('sales', LocalSaleController::class)->names($namePrefix.'sales');
+        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update'])->names($namePrefix.'preferences');
+    };
+
+    Route::prefix('kansor')->name('kansor.')->group(fn () => $registerKanSorRoutes('kansor.'));
+    Route::prefix('pos-kantin')->name('pos-kantin.')->group(fn () => $registerKanSorRoutes('pos-kantin.'));
 });

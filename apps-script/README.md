@@ -1,6 +1,6 @@
-# Apps Script POS Kantin
+# Apps Script KanSor
 
-Folder ini berisi source backend Google Apps Script untuk integrasi POS Kantin di KanSor.
+Folder ini berisi source backend Google Apps Script untuk integrasi KanSor di KanSor.
 
 ## File utama
 
@@ -60,7 +60,7 @@ Istilah terbaru di Google Cloud sekarang ada di `Google Auth Platform`, bukan la
    - pilih audience yang sesuai
 4. Klik `Create client`.
 5. Pilih tipe `Desktop app`.
-6. Isi nama yang jelas, misalnya `KanSor POS Kantin CLASP Local`.
+6. Isi nama yang jelas, misalnya `KanSor KanSor CLASP Local`.
 7. Klik `Create`.
 8. Download file OAuth client secret saat itu juga.
    - Untuk client baru, Google hanya menampilkan full secret saat pembuatan.

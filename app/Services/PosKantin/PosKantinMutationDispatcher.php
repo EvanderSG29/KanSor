@@ -35,20 +35,20 @@ class PosKantinMutationDispatcher
     public function dispatch(string $method, array $arguments, array $context = []): array
     {
         if (! app(PosKantinClient::class)->configured()) {
-            Log::warning('Sinkronisasi POS Kantin gagal dijadwalkan karena API belum dikonfigurasi.', [
+            Log::warning('Sinkronisasi KanSor gagal dijadwalkan karena API belum dikonfigurasi.', [
                 'method' => $method,
                 'context' => $context,
             ]);
 
             return [
                 'status' => 'failed',
-                'message' => 'Data lokal berhasil disimpan, tetapi sinkronisasi spreadsheet gagal dijalankan karena POS Kantin API belum dikonfigurasi.',
+                'message' => 'Data lokal berhasil disimpan, tetapi sinkronisasi spreadsheet gagal dijalankan karena KanSor API belum dikonfigurasi.',
                 'warning' => null,
             ];
         }
 
         if (in_array($method, self::UNSUPPORTED_MUTATION_METHODS, true)) {
-            Log::warning('Sinkronisasi POS Kantin dilewati karena alur mutasi lokal belum kompatibel dengan Apps Script aktif.', [
+            Log::warning('Sinkronisasi KanSor dilewati karena alur mutasi lokal belum kompatibel dengan Apps Script aktif.', [
                 'method' => $method,
                 'context' => $context,
                 'todo' => 'Siapkan adapter payload atau endpoint Apps Script yang sesuai sebelum mengaktifkan sinkronisasi langsung.',
@@ -64,7 +64,7 @@ class PosKantinMutationDispatcher
         try {
             SyncPosKantinMutationJob::dispatch($method, $arguments, $context)->afterCommit();
         } catch (Throwable $exception) {
-            Log::error('Sinkronisasi POS Kantin gagal dijalankan.', [
+            Log::error('Sinkronisasi KanSor gagal dijalankan.', [
                 'method' => $method,
                 'arguments' => $arguments,
                 'context' => $context,
@@ -73,13 +73,13 @@ class PosKantinMutationDispatcher
 
             return [
                 'status' => 'failed',
-                'message' => 'Data lokal berhasil disimpan, tetapi sinkronisasi spreadsheet gagal dijalankan. Cek log POS Kantin untuk detail error.',
+                'message' => 'Data lokal berhasil disimpan, tetapi sinkronisasi spreadsheet gagal dijalankan. Cek log KanSor untuk detail error.',
                 'warning' => null,
             ];
         }
 
         if ($this->dispatchesSynchronously()) {
-            Log::info('Sinkronisasi POS Kantin langsung diterapkan.', [
+            Log::info('Sinkronisasi KanSor langsung diterapkan.', [
                 'method' => $method,
                 'context' => $context,
             ]);
@@ -91,7 +91,7 @@ class PosKantinMutationDispatcher
             ];
         }
 
-        Log::info('Sinkronisasi POS Kantin masuk antrean.', [
+        Log::info('Sinkronisasi KanSor masuk antrean.', [
             'method' => $method,
             'context' => $context,
         ]);

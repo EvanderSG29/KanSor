@@ -62,7 +62,7 @@ class PosKantinClient
         $password = (string) config('services.pos_kantin.admin_password');
 
         if ($email === '' || $password === '') {
-            throw new PosKantinException('Kredensial admin POS Kantin belum lengkap di environment.');
+            throw new PosKantinException('Kredensial admin KanSor belum lengkap di environment.');
         }
 
         $response = $this->sendPost('login', [
@@ -76,7 +76,7 @@ class PosKantinClient
         $data = $this->extractData($response, 'login');
 
         if (! is_array($data) || ! isset($data['token']) || ! is_string($data['token'])) {
-            throw new PosKantinException('Respons login POS Kantin tidak valid.', [
+            throw new PosKantinException('Respons login KanSor tidak valid.', [
                 'action' => 'login',
                 'data' => $data,
             ]);

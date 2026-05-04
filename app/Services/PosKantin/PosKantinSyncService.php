@@ -256,7 +256,7 @@ class PosKantinSyncService
             ->first();
 
         if ($credential === null) {
-            throw new PosKantinException('Perangkat ini belum punya kredensial sinkronisasi POS Kantin.', [
+            throw new PosKantinException('Perangkat ini belum punya kredensial sinkronisasi KanSor.', [
                 'category' => 'authentication',
             ]);
         }
@@ -266,7 +266,7 @@ class PosKantinSyncService
         }
 
         if ($credential->trusted_device_token === null) {
-            throw new PosKantinException('Token trusted device POS Kantin tidak tersedia untuk sinkronisasi.', [
+            throw new PosKantinException('Token trusted device KanSor tidak tersedia untuk sinkronisasi.', [
                 'category' => 'authentication',
             ]);
         }
