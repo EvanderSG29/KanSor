@@ -29,7 +29,7 @@
 ## Patch Breakdown
 | Patch | Fokus | File Utama | Acceptance |
 |---|---|---|---|
-| Patch 0 | Guard UI agar tidak mengklaim sync remote berhasil | `app/Services/PosKantin/PosKantinMutationDispatcher.php`, controller CRUD lokal, `resources/views/pos-kantin/partials/alerts.blade.php` | Sudah selesai. User melihat warning bila perubahan hanya tersimpan lokal. |
+| Patch 0 | Guard UI agar tidak mengklaim sync remote berhasil | `app/Services/PosKantin/PosKantinMutationDispatcher.php`, controller CRUD lokal, `resources/views/kansor/partials/alerts.blade.php` | Sudah selesai. User melihat warning bila perubahan hanya tersimpan lokal. |
 | Patch 1 | Bekukan kontrak sinkronisasi entity per entity | Dokumen ini + update test kontrak | Ada daftar action final, payload final, dan entity yang memang belum didukung. |
 | Patch 2 | Sinkronisasi `supplier` | `PosKantinClient`, `SupplierController`, Apps Script `Suppliers.gs`, test HTTP fake | Create/update/delete supplier benar-benar menulis ke sheet `suppliers`. |
 | Patch 3 | Sinkronisasi `user` | `PosKantinClient`, `UserController`, Apps Script `Users.gs`, test HTTP fake | Create/update/nonaktif user benar-benar menulis ke sheet `users`. |
@@ -152,3 +152,4 @@
 - Keputusan `food` terdokumentasi tegas.
 - Transaksi punya kontrak final dan lulus verifikasi spreadsheet.
 - UI tidak lagi memberi kesan palsu bahwa semua CRUD sudah pasti masuk spreadsheet.
+

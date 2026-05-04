@@ -35,19 +35,20 @@ return [
         ],
     ],
 
-    'pos_kantin' => [
-        'api_url' => env('POS_KANTIN_API_URL'),
-        'admin_email' => env('POS_KANTIN_ADMIN_EMAIL'),
-        'admin_password' => env('POS_KANTIN_ADMIN_PASSWORD'),
-        'legacy_spreadsheet_id' => env('POS_KANTIN_LEGACY_SPREADSHEET_ID'),
-        'timeout' => (int) env('POS_KANTIN_TIMEOUT', 20),
-        'connect_timeout' => (int) env('POS_KANTIN_CONNECT_TIMEOUT', 10),
-        'ca_bundle' => env('POS_KANTIN_CA_BUNDLE'),
-        'token_cache_key' => env('POS_KANTIN_TOKEN_CACHE_KEY', 'pos_kantin.service_account.token'),
-        'device_label' => env('POS_KANTIN_DEVICE_LABEL', 'KanSor Desktop'),
-        'offline_login_days' => (int) env('POS_KANTIN_OFFLINE_LOGIN_DAYS', 30),
-        'offline_login_days_max' => (int) env('POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX', 30),
-        'sync_interval_seconds' => (int) env('POS_KANTIN_SYNC_INTERVAL_SECONDS', 60),
+    'kansor' => [
+        'api_url' => env('KANSOR_API_URL'),
+        'admin_email' => env('KANSOR_ADMIN_EMAIL'),
+        'admin_password' => env('KANSOR_ADMIN_PASSWORD'),
+        'legacy_spreadsheet_id' => env('KANSOR_LEGACY_SPREADSHEET_ID'),
+        'timeout' => (int) env('KANSOR_TIMEOUT', 20),
+        'connect_timeout' => (int) env('KANSOR_CONNECT_TIMEOUT', 10),
+        'ca_bundle' => env('KANSOR_CA_BUNDLE'),
+        'token_cache_key' => env('KANSOR_TOKEN_CACHE_KEY', 'kansor.service_account.token'),
+        'device_label' => env('KANSOR_DEVICE_LABEL', 'KanSor Desktop'),
+        'offline_login_days' => (int) env('KANSOR_OFFLINE_LOGIN_DAYS', 30),
+        'offline_login_days_max' => (int) env('KANSOR_OFFLINE_LOGIN_DAYS_MAX', 30),
+        'sync_interval_seconds' => (int) env('KANSOR_SYNC_INTERVAL_SECONDS', 60),
     ],
 
 ];
+

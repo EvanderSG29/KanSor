@@ -31,7 +31,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         RateLimiter::for('sync-auto', function (Request $request): Limit {
-            $syncIntervalSeconds = max(1, (int) config('services.pos_kantin.sync_interval_seconds', 60));
+            $syncIntervalSeconds = max(1, (int) config('services.kansor.sync_interval_seconds', 60));
             $attemptsPerMinute = max(1, (int) ceil(60 / $syncIntervalSeconds));
             $limiterKey = $request->user()?->getAuthIdentifier() !== null
                 ? 'sync-auto:user:'.$request->user()->getAuthIdentifier()
@@ -61,3 +61,4 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
+

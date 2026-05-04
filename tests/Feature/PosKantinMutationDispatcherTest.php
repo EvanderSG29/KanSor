@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Queue;
 
 test('dispatcher queues supplier sync when apps script is configured', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
     ]);
     Queue::fake();
 
@@ -27,7 +27,7 @@ test('dispatcher queues supplier sync when apps script is configured', function 
 
 test('dispatcher queues food sync when apps script is configured', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
     ]);
     Queue::fake();
 
@@ -46,7 +46,7 @@ test('dispatcher queues food sync when apps script is configured', function () {
 
 test('dispatcher queues transaction sync when apps script is configured', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
     ]);
     Queue::fake();
 
@@ -66,7 +66,7 @@ test('dispatcher queues transaction sync when apps script is configured', functi
 
 test('dispatcher still warns for legacy local mutation endpoints that are not yet compatible with apps script', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
     ]);
 
     $result = app(PosKantinMutationDispatcher::class)->dispatch('createTransaction', [
@@ -79,7 +79,7 @@ test('dispatcher still warns for legacy local mutation endpoints that are not ye
 
 test('dispatcher queues user sync when apps script is configured', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
     ]);
     Queue::fake();
 
@@ -98,7 +98,7 @@ test('dispatcher queues user sync when apps script is configured', function () {
 
 test('dispatcher warns when pos kantin api is not configured', function () {
     config([
-        'services.pos_kantin.api_url' => null,
+        'services.kansor.api_url' => null,
     ]);
 
     $result = app(PosKantinMutationDispatcher::class)->dispatch('saveSupplier', [
@@ -111,11 +111,11 @@ test('dispatcher warns when pos kantin api is not configured', function () {
 
 test('dispatcher reports applied when sync queue runs mutation immediately', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
         'queue.default' => 'sync',
     ]);
 
@@ -159,11 +159,11 @@ test('dispatcher reports applied when sync queue runs mutation immediately', fun
 
 test('dispatcher reports failed when sync queue execution throws an exception', function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
         'queue.default' => 'sync',
     ]);
 
@@ -202,3 +202,4 @@ test('dispatcher reports failed when sync queue execution throws an exception', 
     expect($result['status'])->toBe('failed')
         ->and($result['message'])->toContain('gagal dijalankan');
 });
+

@@ -34,7 +34,7 @@ Skill ini menangani transaksi harian petugas, item penjualan multi-baris, konfir
 ## Implementation Notes
 - Model terkait: `Sale`, `SaleItem`, `Supplier`, `Food`, `User`.
 - Controller terkait: `App\Http\Controllers\PosKantin\SaleController`, `App\Http\Controllers\PosKantin\Admin\SaleController`.
-- Route terkait: `pos-kantin.sales.*`, `pos-kantin.admin.sales.*`.
+- Route terkait: `kansor.sales.*`, `kansor.admin.sales.*`.
 - Service terkait: `SaleCalculationService`, `CanteenTotalAggregationService`.
 - Policy terkait: `SalePolicy`.
 - Soft delete dipakai untuk pembatalan transaksi.
@@ -47,7 +47,7 @@ Skill ini menangani transaksi harian petugas, item penjualan multi-baris, konfir
 - app/Http/Controllers/PosKantin/Admin/SaleController.php
 - app/Http/Requests/StoreSaleRequest.php
 - app/Http/Requests/UpdateSaleRequest.php
-- resources/views/pos-kantin/sales/*.blade.php
+- resources/views/kansor/sales/*.blade.php
 - tests/Feature/Sale*Test.php
 
 ## Data Contract
@@ -71,3 +71,4 @@ Skill ini menangani transaksi harian petugas, item penjualan multi-baris, konfir
 - Makanan hanya dapat dipilih jika aktif dan milik supplier yang dipilih.
 - Transaksi disimpan dengan item terpisah, bukan comma-separated string.
 - Perubahan transaksi hanya diizinkan jika belum final dan masih hari yang sama.
+

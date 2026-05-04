@@ -24,7 +24,7 @@ class SupplierController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pos-kantin.admin.suppliers.index', [
+        return view('kansor.admin.suppliers.index', [
             'filters' => $request->only(['active', 'search']),
             'suppliers' => $suppliers,
         ]);
@@ -32,7 +32,7 @@ class SupplierController extends Controller
 
     public function create(): View
     {
-        return view('pos-kantin.admin.suppliers.create');
+        return view('kansor.admin.suppliers.create');
     }
 
     public function store(
@@ -52,7 +52,7 @@ class SupplierController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.suppliers.index')
+                ->route('kansor.admin.suppliers.index')
                 ->with('status', 'Pemasok berhasil ditambahkan.'),
             $dispatchResult,
         );
@@ -60,7 +60,7 @@ class SupplierController extends Controller
 
     public function edit(Supplier $supplier): View
     {
-        return view('pos-kantin.admin.suppliers.edit', [
+        return view('kansor.admin.suppliers.edit', [
             'supplier' => $supplier,
         ]);
     }
@@ -83,7 +83,7 @@ class SupplierController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.suppliers.index')
+                ->route('kansor.admin.suppliers.index')
                 ->with('status', 'Pemasok berhasil diperbarui.'),
             $dispatchResult,
         );
@@ -105,9 +105,10 @@ class SupplierController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.suppliers.index')
+                ->route('kansor.admin.suppliers.index')
                 ->with('status', 'Pemasok berhasil dinonaktifkan.'),
             $dispatchResult,
         );
     }
 }
+

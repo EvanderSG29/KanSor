@@ -19,7 +19,7 @@ class AuditLogController extends Controller
             ->paginate(20)
             ->withQueryString();
 
-        return view('pos-kantin.admin.audit-logs.index', [
+        return view('kansor.admin.audit-logs.index', [
             'actions' => AuditLog::query()
                 ->select('action')
                 ->distinct()
@@ -30,3 +30,4 @@ class AuditLogController extends Controller
         ]);
     }
 }
+

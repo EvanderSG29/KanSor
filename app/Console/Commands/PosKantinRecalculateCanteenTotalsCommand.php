@@ -11,7 +11,7 @@ class PosKantinRecalculateCanteenTotalsCommand extends Command
     /**
      * @var string
      */
-    protected $signature = 'pos-kantin:recalculate-canteen-totals
+    protected $signature = 'kansor:recalculate-canteen-totals
                             {--date= : Recalculate a single operational date (Y-m-d)}
                             {--from= : Start date for recalculation range (Y-m-d)}
                             {--to= : End date for recalculation range (Y-m-d)}';
@@ -59,3 +59,4 @@ class PosKantinRecalculateCanteenTotalsCommand extends Command
         return self::SUCCESS;
     }
 }
+

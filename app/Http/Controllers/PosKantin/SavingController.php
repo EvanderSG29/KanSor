@@ -13,9 +13,10 @@ class SavingController extends Controller
     {
         $result = $posKantinLocalRepository->savings(auth()->user());
 
-        return view('pos-kantin.savings.index', [
+        return view('kansor.savings.index', [
             'savings' => $result['items'],
             'summary' => $result['summary'],
         ]);
     }
 }
+

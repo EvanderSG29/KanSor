@@ -14,7 +14,7 @@ class TransactionController extends Controller
         $filters = $request->filters();
         $result = $posKantinLocalRepository->transactions(auth()->user(), $filters);
 
-        return view('pos-kantin.transactions.index', [
+        return view('kansor.transactions.index', [
             'filters' => $filters,
             'pagination' => $result['pagination'],
             'summary' => $result['summary'],
@@ -22,3 +22,4 @@ class TransactionController extends Controller
         ]);
     }
 }
+

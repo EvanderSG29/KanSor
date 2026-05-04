@@ -33,7 +33,7 @@ class SaleController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('pos-kantin.sales.index', [
+        return view('kansor.sales.index', [
             'filters' => $request->only(['supplier_id', 'from', 'to']),
             'sales' => $sales,
             'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
@@ -44,7 +44,7 @@ class SaleController extends Controller
     {
         $this->authorize('create', Sale::class);
 
-        return view('pos-kantin.sales.create', $this->formData(new Sale([
+        return view('kansor.sales.create', $this->formData(new Sale([
             'date' => now('Asia/Jakarta')->toDateString(),
             'additional_users' => [],
         ])));
@@ -85,7 +85,7 @@ class SaleController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.sales.show', $sale)
+                ->route('kansor.sales.show', $sale)
                 ->with('status', 'Transaksi berhasil disimpan.'),
             $dispatchResult,
         );
@@ -95,7 +95,7 @@ class SaleController extends Controller
     {
         $this->authorize('view', $sale);
 
-        return view('pos-kantin.sales.show', [
+        return view('kansor.sales.show', [
             'sale' => $sale->load([
                 'supplier',
                 'user',
@@ -110,7 +110,7 @@ class SaleController extends Controller
     {
         $this->authorize('update', $sale);
 
-        return view('pos-kantin.sales.edit', $this->formData($sale->load('items.food')));
+        return view('kansor.sales.edit', $this->formData($sale->load('items.food')));
     }
 
     public function update(
@@ -146,7 +146,7 @@ class SaleController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.sales.show', $sale)
+                ->route('kansor.sales.show', $sale)
                 ->with('status', 'Transaksi berhasil diperbarui.'),
             $dispatchResult,
         );
@@ -174,7 +174,7 @@ class SaleController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.sales.index')
+                ->route('kansor.sales.index')
                 ->with('status', 'Transaksi berhasil dibatalkan.'),
             $dispatchResult,
         );
@@ -214,3 +214,4 @@ class SaleController extends Controller
         ];
     }
 }
+

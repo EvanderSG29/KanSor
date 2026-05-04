@@ -14,7 +14,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => null,
+        'services.kansor.api_url' => null,
     ]);
 
     Http::fake([
@@ -44,7 +44,7 @@ test('admin can create local user and password is hashed', function () {
     $admin = adminUser();
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Baru',
             'email' => 'petugas-baru@example.com',
             'password' => 'KanSor!Pass123',
@@ -52,7 +52,7 @@ test('admin can create local user and password is hashed', function () {
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $user = User::query()->where('email', 'petugas-baru@example.com')->first();
 
@@ -72,8 +72,8 @@ test('user email must stay unique on admin create', function () {
     ]);
 
     $this->actingAs($admin)
-        ->from(route('pos-kantin.admin.users.create'))
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->from(route('kansor.admin.users.create'))
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Duplikat',
             'email' => 'sama@example.com',
             'password' => 'KanSor!Pass123',
@@ -81,7 +81,7 @@ test('user email must stay unique on admin create', function () {
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.create'))
+        ->assertRedirect(route('kansor.admin.users.create'))
         ->assertSessionHasErrors('email');
 });
 
@@ -89,7 +89,7 @@ test('petugas cannot access local user crud admin routes', function () {
     $petugas = petugasUser();
 
     $this->actingAs($petugas)
-        ->get(route('pos-kantin.admin.users.index'))
+        ->get(route('kansor.admin.users.index'))
         ->assertForbidden();
 });
 
@@ -97,7 +97,7 @@ test('admin cannot deactivate the last active admin', function () {
     $admin = adminUser();
 
     $this->actingAs($admin)
-        ->delete(route('pos-kantin.admin.users.destroy', $admin))
+        ->delete(route('kansor.admin.users.destroy', $admin))
         ->assertSessionHas('error');
 
     expect($admin->fresh()?->active)->toBeTrue();
@@ -107,13 +107,13 @@ test('admin can create supplier and inactive supplier is hidden from sale create
     $admin = adminUser();
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.suppliers.store'), [
+        ->post(route('kansor.admin.suppliers.store'), [
             'name' => 'Supplier Aktif',
             'contact_info' => '08123',
             'percentage_cut' => 10,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.suppliers.index'));
+        ->assertRedirect(route('kansor.admin.suppliers.index'));
 
     $inactiveSupplier = Supplier::factory()->create([
         'name' => 'Supplier Nonaktif',
@@ -123,7 +123,7 @@ test('admin can create supplier and inactive supplier is hidden from sale create
     $petugas = petugasUser();
 
     $this->actingAs($petugas)
-        ->get(route('pos-kantin.sales.create'))
+        ->get(route('kansor.sales.create'))
         ->assertSuccessful()
         ->assertSee('Supplier Aktif')
         ->assertDontSee($inactiveSupplier->name);
@@ -135,14 +135,14 @@ test('admin can create food and inactive food is hidden from sale create page', 
     $inactiveSupplier = Supplier::factory()->create(['active' => false]);
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.foods.store'), [
+        ->post(route('kansor.admin.foods.store'), [
             'supplier_id' => $supplier->id,
             'name' => 'Bakwan',
             'unit' => 'pcs',
             'default_price' => 2000,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.foods.index'));
+        ->assertRedirect(route('kansor.admin.foods.index'));
 
     $inactiveFood = Food::factory()->create([
         'supplier_id' => $supplier->id,
@@ -159,7 +159,7 @@ test('admin can create food and inactive food is hidden from sale create page', 
     $petugas = petugasUser();
 
     $this->actingAs($petugas)
-        ->get(route('pos-kantin.sales.create'))
+        ->get(route('kansor.sales.create'))
         ->assertSuccessful()
         ->assertSee('Bakwan')
         ->assertDontSee($inactiveFood->name)
@@ -179,7 +179,7 @@ test('sale create page shows live summary section and quick item controls', func
     ]);
 
     $this->actingAs($petugas)
-        ->get(route('pos-kantin.sales.create'))
+        ->get(route('kansor.sales.create'))
         ->assertSuccessful()
         ->assertSee('Ringkasan sebelum simpan')
         ->assertSee('Total Terjual')
@@ -204,7 +204,7 @@ test('petugas can create sale and totals are calculated correctly', function () 
     ]);
 
     $this->actingAs($petugas)
-        ->post(route('pos-kantin.sales.store'), [
+        ->post(route('kansor.sales.store'), [
             'date' => now('Asia/Jakarta')->format('Y-m-d'),
             'supplier_id' => $supplier->id,
             'additional_users' => [$assistant->id],
@@ -245,8 +245,8 @@ test('active sale must be unique for the same supplier and date', function () {
     ]);
 
     $this->actingAs($petugas)
-        ->from(route('pos-kantin.sales.create'))
-        ->post(route('pos-kantin.sales.store'), [
+        ->from(route('kansor.sales.create'))
+        ->post(route('kansor.sales.store'), [
             'date' => now('Asia/Jakarta')->format('Y-m-d'),
             'supplier_id' => $supplier->id,
             'items' => [
@@ -259,7 +259,7 @@ test('active sale must be unique for the same supplier and date', function () {
                 ],
             ],
         ])
-        ->assertRedirect(route('pos-kantin.sales.create'))
+        ->assertRedirect(route('kansor.sales.create'))
         ->assertSessionHasErrors('date');
 });
 
@@ -272,8 +272,8 @@ test('sale validation rejects leftover greater than quantity', function () {
     ]);
 
     $this->actingAs($petugas)
-        ->from(route('pos-kantin.sales.create'))
-        ->post(route('pos-kantin.sales.store'), [
+        ->from(route('kansor.sales.create'))
+        ->post(route('kansor.sales.store'), [
             'date' => now('Asia/Jakarta')->format('Y-m-d'),
             'supplier_id' => $supplier->id,
             'items' => [
@@ -286,7 +286,7 @@ test('sale validation rejects leftover greater than quantity', function () {
                 ],
             ],
         ])
-        ->assertRedirect(route('pos-kantin.sales.create'))
+        ->assertRedirect(route('kansor.sales.create'))
         ->assertSessionHasErrors('items.0.leftover');
 });
 
@@ -315,14 +315,14 @@ test('sale becomes read only for petugas after admin confirmation', function () 
     ]);
 
     $this->actingAs($admin)
-        ->patch(route('pos-kantin.admin.sales.confirm-supplier-paid', $sale), [
+        ->patch(route('kansor.admin.sales.confirm-supplier-paid', $sale), [
             'paid_at' => now('Asia/Jakarta')->format('Y-m-d'),
             'paid_amount' => 9000,
         ])
         ->assertSessionHas('status');
 
     $this->actingAs($petugas)
-        ->get(route('pos-kantin.sales.edit', $sale))
+        ->get(route('kansor.sales.edit', $sale))
         ->assertForbidden();
 });
 
@@ -350,7 +350,7 @@ test('admin can confirm canteen deposited and canteen total is recalculated', fu
     ]);
 
     $this->actingAs($admin)
-        ->patch(route('pos-kantin.admin.sales.confirm-canteen-deposited', $sale), [
+        ->patch(route('kansor.admin.sales.confirm-canteen-deposited', $sale), [
             'paid_at' => now('Asia/Jakarta')->format('Y-m-d'),
             'paid_amount' => 2000,
             'taken_note' => 'Setor kas',
@@ -370,13 +370,14 @@ test('user can save whitelisted preferences', function () {
     $petugas = petugasUser();
 
     $this->actingAs($petugas)
-        ->post(route('pos-kantin.preferences.store'), [
+        ->post(route('kansor.preferences.store'), [
             'sync_interval' => 120,
             'theme' => 'dark',
             'rows_per_page' => 25,
         ])
-        ->assertRedirect(route('pos-kantin.preferences.index'));
+        ->assertRedirect(route('kansor.preferences.index'));
 
     expect(Preference::query()->where('user_id', $petugas->id)->count())->toBe(3)
         ->and(Preference::query()->where('user_id', $petugas->id)->where('key', 'theme')->first()?->value)->toBe('dark');
 });
+

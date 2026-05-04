@@ -41,7 +41,7 @@ class PosKantinSessionClient
     public function createTrustedDevice(string $sessionToken, ?string $deviceLabel = null): array
     {
         return $this->request('createTrustedDevice', [
-            'deviceLabel' => $deviceLabel ?: (string) config('services.pos_kantin.device_label', 'KanSor Desktop'),
+            'deviceLabel' => $deviceLabel ?: (string) config('services.kansor.device_label', 'KanSor Desktop'),
         ], $sessionToken);
     }
 
@@ -111,3 +111,4 @@ class PosKantinSessionClient
         return $data;
     }
 }
+

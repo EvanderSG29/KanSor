@@ -6,10 +6,10 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     Config::set('cache.default', 'array');
-    Config::set('services.pos_kantin.api_url', 'https://example.test/macros/s/api/exec');
-    Config::set('services.pos_kantin.admin_email', 'evandersmidgidiin@gmail.com');
-    Config::set('services.pos_kantin.admin_password', 'secret-password');
-    Config::set('services.pos_kantin.legacy_spreadsheet_id', 'legacy-sheet-from-config');
+    Config::set('services.kansor.api_url', 'https://example.test/macros/s/api/exec');
+    Config::set('services.kansor.admin_email', 'evandersmidgidiin@gmail.com');
+    Config::set('services.kansor.admin_password', 'secret-password');
+    Config::set('services.kansor.legacy_spreadsheet_id', 'legacy-sheet-from-config');
     Http::preventStrayRequests();
 });
 
@@ -62,7 +62,7 @@ test('legacy spreadsheet migration command previews migration by default', funct
         },
     ]);
 
-    $this->artisan('pos-kantin:migrate-legacy-spreadsheet')
+    $this->artisan('kansor:migrate-legacy-spreadsheet')
         ->expectsOutputToContain('Mode: preview')
         ->expectsOutputToContain('Preview selesai')
         ->assertExitCode(0);
@@ -125,7 +125,7 @@ test('legacy spreadsheet migration command can commit with explicit options', fu
         },
     ]);
 
-    $this->artisan('pos-kantin:migrate-legacy-spreadsheet', [
+    $this->artisan('kansor:migrate-legacy-spreadsheet', [
         '--source' => 'legacy-sheet-explicit',
         '--commit' => true,
         '--include-users' => true,
@@ -137,9 +137,9 @@ test('legacy spreadsheet migration command can commit with explicit options', fu
 });
 
 test('legacy spreadsheet migration command fails when source spreadsheet is missing', function () {
-    Config::set('services.pos_kantin.legacy_spreadsheet_id', null);
+    Config::set('services.kansor.legacy_spreadsheet_id', null);
 
-    $this->artisan('pos-kantin:migrate-legacy-spreadsheet')
+    $this->artisan('kansor:migrate-legacy-spreadsheet')
         ->expectsOutputToContain('Spreadsheet sumber belum diisi.')
         ->assertExitCode(1);
 });
@@ -166,8 +166,9 @@ test('legacy spreadsheet migration command explains when deployed apps script is
         },
     ]);
 
-    $this->artisan('pos-kantin:migrate-legacy-spreadsheet')
-        ->expectsOutputToContain('Deployment Web App Apps Script yang dipakai POS_KANTIN_API_URL masih versi lama')
+    $this->artisan('kansor:migrate-legacy-spreadsheet')
+        ->expectsOutputToContain('Deployment Web App Apps Script yang dipakai KANSOR_API_URL masih versi lama')
         ->expectsOutputToContain('push source apps-script terbaru')
         ->assertExitCode(1);
 });
+

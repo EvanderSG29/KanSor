@@ -19,7 +19,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => null,
+        'services.kansor.api_url' => null,
     ]);
 
     Http::fake([
@@ -49,18 +49,18 @@ test('admin can view audit logs and petugas cannot access the audit page', funct
     ]);
 
     $this->actingAs($this->admin)
-        ->get(route('pos-kantin.admin.audit-logs.index'))
+        ->get(route('kansor.admin.audit-logs.index'))
         ->assertSuccessful()
         ->assertSee('Audit Aktivitas')
         ->assertSee('sale.updated');
 
     $this->actingAs($this->petugas)
-        ->get(route('pos-kantin.admin.audit-logs.index'))
+        ->get(route('kansor.admin.audit-logs.index'))
         ->assertForbidden();
 });
 
 test('audit logger redacts sync payload keys from metadata', function () {
-    $request = Request::create('/pos-kantin/sinkronisasi', 'POST');
+    $request = Request::create('/kansor/sinkronisasi', 'POST');
     $request->setUserResolver(fn () => $this->admin);
 
     $auditLog = app(AuditLogger::class)->log(
@@ -99,13 +99,13 @@ test('supplier payment confirmation writes an encrypted audit log entry', functi
     ]);
 
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.sales.show', $sale))
-        ->patch(route('pos-kantin.admin.sales.confirm-supplier-paid', $sale), [
+        ->from(route('kansor.admin.sales.show', $sale))
+        ->patch(route('kansor.admin.sales.confirm-supplier-paid', $sale), [
             'paid_at' => '2026-04-30',
             'paid_amount' => 18000,
             'taken_note' => 'Catatan pemasok yang sensitif',
         ])
-        ->assertRedirect(route('pos-kantin.admin.sales.show', $sale))
+        ->assertRedirect(route('kansor.admin.sales.show', $sale))
         ->assertSessionHas('status');
 
     $auditLog = AuditLog::query()
@@ -144,13 +144,13 @@ test('canteen deposit confirmation writes an audit log entry', function () {
     ]);
 
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.sales.show', $sale))
-        ->patch(route('pos-kantin.admin.sales.confirm-canteen-deposited', $sale), [
+        ->from(route('kansor.admin.sales.show', $sale))
+        ->patch(route('kansor.admin.sales.confirm-canteen-deposited', $sale), [
             'paid_at' => '2026-04-30',
             'paid_amount' => 2500,
             'taken_note' => 'Setor kas akhir hari',
         ])
-        ->assertRedirect(route('pos-kantin.admin.sales.show', $sale))
+        ->assertRedirect(route('kansor.admin.sales.show', $sale))
         ->assertSessionHas('status');
 
     $auditLog = AuditLog::query()
@@ -215,7 +215,7 @@ test('sale update and delete actions write audit logs', function () {
     ]);
 
     $this->actingAs($this->admin)
-        ->put(route('pos-kantin.admin.sales.update', $sale), [
+        ->put(route('kansor.admin.sales.update', $sale), [
             'date' => '2026-04-30',
             'supplier_id' => $supplier->id,
             'additional_users' => [],
@@ -228,7 +228,7 @@ test('sale update and delete actions write audit logs', function () {
                 'price_per_unit' => 5000,
             ]],
         ])
-        ->assertRedirect(route('pos-kantin.admin.sales.show', $sale))
+        ->assertRedirect(route('kansor.admin.sales.show', $sale))
         ->assertSessionHas('status');
 
     $saleUpdatedLog = AuditLog::query()
@@ -244,8 +244,8 @@ test('sale update and delete actions write audit logs', function () {
         ->and($saleUpdatedLog?->metadata['after']['total_canteen'] ?? null)->toBe(1500);
 
     $this->actingAs($this->admin)
-        ->delete(route('pos-kantin.admin.sales.destroy', $sale))
-        ->assertRedirect(route('pos-kantin.admin.sales.index'))
+        ->delete(route('kansor.admin.sales.destroy', $sale))
+        ->assertRedirect(route('kansor.admin.sales.index'))
         ->assertSessionHas('status');
 
     $saleDeletedLog = AuditLog::query()
@@ -301,9 +301,9 @@ test('sync conflict discard and resend write audit logs', function () {
     ]);
 
     $this->actingAs($this->petugas)
-        ->from(route('pos-kantin.sync.index'))
-        ->post(route('pos-kantin.sync.outbox.discard', $outbox->id))
-        ->assertRedirect(route('pos-kantin.sync.index'))
+        ->from(route('kansor.sync.index'))
+        ->post(route('kansor.sync.outbox.discard', $outbox->id))
+        ->assertRedirect(route('kansor.sync.index'))
         ->assertSessionHas('status');
 
     $discardLog = AuditLog::query()
@@ -323,9 +323,9 @@ test('sync conflict discard and resend write audit logs', function () {
         ]);
 
     $this->actingAs($this->petugas)
-        ->from(route('pos-kantin.sync.index'))
-        ->post(route('pos-kantin.sync.outbox.resend', $outbox->id))
-        ->assertRedirect(route('pos-kantin.sync.index'))
+        ->from(route('kansor.sync.index'))
+        ->post(route('kansor.sync.outbox.resend', $outbox->id))
+        ->assertRedirect(route('kansor.sync.index'))
         ->assertSessionHas('status');
 
     $resendLog = AuditLog::query()
@@ -346,7 +346,7 @@ test('sync conflict discard and resend write audit logs', function () {
 
 test('user lifecycle actions write audit logs without storing plaintext password data', function () {
     $this->actingAs($this->admin)
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Audit',
             'email' => 'petugas-audit@example.com',
             'password' => 'KanSor!Pass123',
@@ -354,7 +354,7 @@ test('user lifecycle actions write audit logs without storing plaintext password
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $managedUser = User::query()->where('email', 'petugas-audit@example.com')->firstOrFail();
 
@@ -373,7 +373,7 @@ test('user lifecycle actions write audit logs without storing plaintext password
         ]);
 
     $this->actingAs($this->admin)
-        ->put(route('pos-kantin.admin.users.update', $managedUser), [
+        ->put(route('kansor.admin.users.update', $managedUser), [
             'name' => 'Petugas Audit Update',
             'email' => 'petugas-audit@example.com',
             'password' => 'KanSor!Pass456',
@@ -381,7 +381,7 @@ test('user lifecycle actions write audit logs without storing plaintext password
             'role' => User::ROLE_ADMIN,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $updatedLog = AuditLog::query()
         ->where('action', 'user.updated')
@@ -401,8 +401,8 @@ test('user lifecycle actions write audit logs without storing plaintext password
         ->not->toContain('KanSor!Pass456');
 
     $this->actingAs($this->admin)
-        ->delete(route('pos-kantin.admin.users.destroy', $managedUser))
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->delete(route('kansor.admin.users.destroy', $managedUser))
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $deactivatedLog = AuditLog::query()
         ->where('action', 'user.deactivated')
@@ -414,3 +414,4 @@ test('user lifecycle actions write audit logs without storing plaintext password
         ->and($deactivatedLog?->metadata['active'] ?? null)->toBeFalse()
         ->and($deactivatedLog?->metadata['status'] ?? null)->toBe(User::STATUS_INACTIVE);
 });
+

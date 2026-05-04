@@ -12,11 +12,11 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
         'queue.default' => 'sync',
     ]);
 
@@ -77,7 +77,7 @@ test('creating sale sends save transaction payload for each sale item with food 
     ]);
 
     $this->actingAs($petugas)
-        ->post(route('pos-kantin.sales.store'), [
+        ->post(route('kansor.sales.store'), [
             'date' => '2026-04-29',
             'supplier_id' => $supplier->id,
             'additional_users' => [$assistant->id],
@@ -186,7 +186,7 @@ test('updating sale deletes removed transaction rows and saves current sale item
     ]);
 
     $this->actingAs($admin)
-        ->put(route('pos-kantin.admin.sales.update', $sale), [
+        ->put(route('kansor.admin.sales.update', $sale), [
             'date' => '2026-04-29',
             'supplier_id' => $supplier->id,
             'items' => [[
@@ -198,7 +198,7 @@ test('updating sale deletes removed transaction rows and saves current sale item
                 'price_per_unit' => 6000,
             ]],
         ])
-        ->assertRedirect(route('pos-kantin.admin.sales.show', $sale))
+        ->assertRedirect(route('kansor.admin.sales.show', $sale))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($removedItem): bool {
@@ -262,8 +262,8 @@ test('deleting sale sends delete transaction for every remote sale item row', fu
     ]);
 
     $this->actingAs($petugas)
-        ->delete(route('pos-kantin.sales.destroy', $sale))
-        ->assertRedirect(route('pos-kantin.sales.index'))
+        ->delete(route('kansor.sales.destroy', $sale))
+        ->assertRedirect(route('kansor.sales.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($item): bool {
@@ -271,3 +271,4 @@ test('deleting sale sends delete transaction for every remote sale item row', fu
             && ($request['payload']->id ?? null) === 'SALEITEM-'.$item->getKey();
     });
 });
+

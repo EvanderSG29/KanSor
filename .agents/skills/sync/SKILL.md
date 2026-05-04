@@ -10,7 +10,7 @@ Use when task mentions outbox, syncPush/syncPull, conflict resolution, selective
 ## Files
 - `app/Services/PosKantin/PosKantinSyncService.php`
 - `app/Http/Controllers/PosKantin/SyncController.php`
-- `resources/views/pos-kantin/sync/index.blade.php`
+- `resources/views/kansor/sync/index.blade.php`
 - `tests/Feature/Feature/PosKantinSyncServiceTest.php`
 
 ## Tests
@@ -39,7 +39,7 @@ Automasi logika selective/manual sync, filtering outbox item, dan sinkronisasi u
 - app/Services/PosKantin/PosKantinSyncService.php
 - app/Models/PosKantinSyncOutbox.php
 - app/Http/Controllers/PosKantin/SyncController.php
-- resources/views/pos-kantin/sync/*.blade.php
+- resources/views/kansor/sync/*.blade.php
 - routes/web.php
 - tests/Feature/Sync*Test.php
 
@@ -69,3 +69,4 @@ Automasi logika selective/manual sync, filtering outbox item, dan sinkronisasi u
 - Sync all tetap tersedia untuk semua pending/failed item.
 - Outbox `selectedOutboxIds` tidak memproses item di luar daftar.
 - Konflik dapat dibedakan dan dijadikan aksi retry/skip.
+

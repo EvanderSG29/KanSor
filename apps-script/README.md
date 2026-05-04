@@ -92,7 +92,7 @@ Jika login masih memakai akun yang salah, logout dulu lalu login ulang:
 3. Jika preview aman, jalankan migrasi:
    - `clasp run runLegacySpreadsheetMigration -p "[\"SPREADSHEET_ID_LAMA\", false, false]"`
 4. Untuk workflow server-side dari Laravel, gunakan Artisan:
-   - `php artisan pos-kantin:migrate-legacy-spreadsheet --source=SPREADSHEET_ID_LAMA`
+   - `php artisan kansor:migrate-legacy-spreadsheet --source=SPREADSHEET_ID_LAMA`
    - tambah `--commit` setelah hasil preview valid.
 
 Catatan:
@@ -142,17 +142,17 @@ Dari CLI:
 ### Contoh curl health/login/syncPull/syncPush
 
 ```bash
-curl "$POS_KANTIN_API_URL?action=health"
+curl "$KANSOR_API_URL?action=health"
 
-curl -X POST "$POS_KANTIN_API_URL" \
+curl -X POST "$KANSOR_API_URL" \
   -H 'Content-Type: application/json' \
   -d '{"action":"login","payload":{"email":"admin@kansor.local","password":"12345678"}}'
 
-curl -X POST "$POS_KANTIN_API_URL" \
+curl -X POST "$KANSOR_API_URL" \
   -H 'Content-Type: application/json' \
   -d '{"action":"syncPull","token":"SESSION_TOKEN","payload":{"since":{"users":"","suppliers":"","foods":"","transactions":""}}}'
 
-curl -X POST "$POS_KANTIN_API_URL" \
+curl -X POST "$KANSOR_API_URL" \
   -H 'Content-Type: application/json' \
   -d '{"action":"syncPush","token":"SESSION_TOKEN","payload":{"mutations":[{"clientMutationId":"demo-1","action":"saveSupplier","entityType":"supplier","payload":{"id":"SUP-001","supplierName":"Demo"}}]}}'
 ```
@@ -162,3 +162,4 @@ curl -X POST "$POS_KANTIN_API_URL" \
 - Pakai editor Apps Script untuk run manual function (`setupApplicationSpreadsheet`, `setUserPasswordByEmail`).
 - Untuk verifikasi endpoint, gunakan Web App deployment URL langsung via `curl`.
 - Jika `clasp run` tidak bisa dipakai di mesin tertentu, lakukan release dari CI/mesin admin yang punya OAuth & Script API executable permissions.
+

@@ -13,10 +13,10 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.device_label' => 'KanSor Test Device',
-        'services.pos_kantin.offline_login_days' => 30,
-        'services.pos_kantin.offline_login_days_max' => 45,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.device_label' => 'KanSor Test Device',
+        'services.kansor.offline_login_days' => 30,
+        'services.kansor.offline_login_days_max' => 45,
     ]);
 
     Http::preventStrayRequests();
@@ -302,3 +302,4 @@ test('it invalidates offline login when remote auth changed from local credentia
 
     $this->assertGuest();
 });
+

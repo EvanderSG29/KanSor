@@ -48,6 +48,7 @@ class PosKantinServiceTokenCache
 
     protected function cacheKey(): string
     {
-        return (string) config('services.pos_kantin.token_cache_key', 'pos_kantin.service_account.token');
+        return (string) config('services.kansor.token_cache_key', 'kansor.service_account.token');
     }
 }
+

@@ -30,7 +30,7 @@ Skill ini menangani data makanan lokal yang terhubung ke pemasok, satuan, harga 
 ## Implementation Notes
 - Model terkait: `Food`, `Supplier`, `SaleItem`.
 - Controller terkait: `App\Http\Controllers\PosKantin\Admin\FoodController`.
-- Route terkait: `pos-kantin.admin.foods.*`.
+- Route terkait: `kansor.admin.foods.*`.
 - Relasi: `Food belongsTo Supplier`, `Food hasMany SaleItem`.
 - Makanan dari pemasok nonaktif tidak boleh dipilih pada transaksi baru.
 - Nilai uang disimpan integer, format rupiah hanya di view.
@@ -41,7 +41,7 @@ Skill ini menangani data makanan lokal yang terhubung ke pemasok, satuan, harga 
 - app/Http/Controllers/PosKantin/FoodController.php
 - app/Http/Requests/StoreFoodRequest.php
 - app/Http/Requests/UpdateFoodRequest.php
-- resources/views/pos-kantin/foods/*.blade.php
+- resources/views/kansor/foods/*.blade.php
 - routes/web.php
 - tests/Feature/Food*Test.php
 
@@ -63,3 +63,4 @@ Skill ini menangani data makanan lokal yang terhubung ke pemasok, satuan, harga 
 - Dropdown makanan pada transaksi hanya menunjukkan makanan aktif dari supplier terpilih.
 - Harga disimpan sebagai integer, bukan string terformat.
 - Makanan nonaktif tidak dapat dipilih untuk transaksi baru.
+

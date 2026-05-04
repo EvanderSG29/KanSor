@@ -9,11 +9,11 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
         'queue.default' => 'sync',
     ]);
 
@@ -56,7 +56,7 @@ test('creating user sends apps script compatible save user payload', function ()
     $admin = userSyncAdmin();
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Baru',
             'email' => 'petugas-baru@example.com',
             'password' => 'KanSor!Pass123',
@@ -64,7 +64,7 @@ test('creating user sends apps script compatible save user payload', function ()
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'))
+        ->assertRedirect(route('kansor.admin.users.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request): bool {
@@ -113,13 +113,13 @@ test('updating user sends mapped save user payload and omits password when not c
     ]);
 
     $this->actingAs($admin)
-        ->put(route('pos-kantin.admin.users.update', $user), [
+        ->put(route('kansor.admin.users.update', $user), [
             'name' => 'Petugas Baru',
             'email' => 'petugas-baru@example.com',
             'role' => User::ROLE_ADMIN,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'))
+        ->assertRedirect(route('kansor.admin.users.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($user): bool {
@@ -172,8 +172,8 @@ test('deactivating user still sends full save user payload', function () {
     ]);
 
     $this->actingAs($admin)
-        ->delete(route('pos-kantin.admin.users.destroy', $user))
-        ->assertRedirect(route('pos-kantin.admin.users.index'))
+        ->delete(route('kansor.admin.users.destroy', $user))
+        ->assertRedirect(route('kansor.admin.users.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($user): bool {
@@ -185,3 +185,4 @@ test('deactivating user still sends full save user payload', function () {
             && ($request['payload']->status ?? null) === User::STATUS_INACTIVE;
     });
 });
+

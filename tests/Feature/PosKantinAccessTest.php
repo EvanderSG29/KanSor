@@ -46,9 +46,9 @@ test('guest cannot access pos routes', function (string $routeName, array $param
         ->assertRedirect(route('login'));
 })->with([
     'home dashboard' => ['home'],
-    'sales index' => ['pos-kantin.sales.index'],
-    'sync index' => ['pos-kantin.sync.index'],
-    'admin users index' => ['pos-kantin.admin.users.index'],
+    'sales index' => ['kansor.sales.index'],
+    'sync index' => ['kansor.sync.index'],
+    'admin users index' => ['kansor.admin.users.index'],
 ]);
 
 test('inactive user cannot access pos routes', function (string $routeName, array $parameters = []) {
@@ -57,8 +57,8 @@ test('inactive user cannot access pos routes', function (string $routeName, arra
         ->assertForbidden();
 })->with([
     'home dashboard' => ['home'],
-    'sales index' => ['pos-kantin.sales.index'],
-    'sync index' => ['pos-kantin.sync.index'],
+    'sales index' => ['kansor.sales.index'],
+    'sync index' => ['kansor.sync.index'],
 ]);
 
 test('user with invalid role cannot access pos routes', function (string $routeName, array $parameters = []) {
@@ -67,8 +67,8 @@ test('user with invalid role cannot access pos routes', function (string $routeN
         ->assertForbidden();
 })->with([
     'home dashboard' => ['home'],
-    'sales index' => ['pos-kantin.sales.index'],
-    'sync index' => ['pos-kantin.sync.index'],
+    'sales index' => ['kansor.sales.index'],
+    'sync index' => ['kansor.sync.index'],
 ]);
 
 test('petugas cannot access admin routes', function (string $routeName, array $parameters = []) {
@@ -76,9 +76,9 @@ test('petugas cannot access admin routes', function (string $routeName, array $p
         ->get(route($routeName, $parameters))
         ->assertForbidden();
 })->with([
-    'admin users index' => ['pos-kantin.admin.users.index'],
-    'admin sales index' => ['pos-kantin.admin.sales.index'],
-    'admin audit logs index' => ['pos-kantin.admin.audit-logs.index'],
+    'admin users index' => ['kansor.admin.users.index'],
+    'admin sales index' => ['kansor.admin.sales.index'],
+    'admin audit logs index' => ['kansor.admin.audit-logs.index'],
 ]);
 
 test('admin can access admin routes', function (string $routeName, array $parameters = []) {
@@ -86,9 +86,9 @@ test('admin can access admin routes', function (string $routeName, array $parame
         ->get(route($routeName, $parameters))
         ->assertSuccessful();
 })->with([
-    'admin users index' => ['pos-kantin.admin.users.index'],
-    'admin sales index' => ['pos-kantin.admin.sales.index'],
-    'admin audit logs index' => ['pos-kantin.admin.audit-logs.index'],
+    'admin users index' => ['kansor.admin.users.index'],
+    'admin sales index' => ['kansor.admin.sales.index'],
+    'admin audit logs index' => ['kansor.admin.audit-logs.index'],
 ]);
 
 test('petugas can access pos sales routes', function (string $routeName, array $parameters = []) {
@@ -97,8 +97,8 @@ test('petugas can access pos sales routes', function (string $routeName, array $
         ->assertSuccessful();
 })->with([
     'home dashboard' => ['home'],
-    'sales index' => ['pos-kantin.sales.index'],
-    'preferences index' => ['pos-kantin.preferences.index'],
+    'sales index' => ['kansor.sales.index'],
+    'preferences index' => ['kansor.preferences.index'],
 ]);
 
 test('petugas sees only the operational sidebar menu', function () {
@@ -133,3 +133,4 @@ test('admin sees the role-based sidebar without technical labels', function () {
         ->assertDontSee('Snapshot Pemasok')
         ->assertDontSee('CRUD');
 });
+

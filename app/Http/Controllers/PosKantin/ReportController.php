@@ -10,9 +10,10 @@ class ReportController extends Controller
 {
     public function index(PosKantinLocalRepository $posKantinLocalRepository): View
     {
-        return view('pos-kantin.reports.index', [
+        return view('kansor.reports.index', [
             'generatedAt' => now(),
             'summary' => $posKantinLocalRepository->dashboardSummary(auth()->user()),
         ]);
     }
 }
+

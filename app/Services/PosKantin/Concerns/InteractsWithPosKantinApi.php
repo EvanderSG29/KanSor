@@ -23,20 +23,20 @@ trait InteractsWithPosKantinApi
 
     protected function apiUrl(): string
     {
-        return trim((string) config('services.pos_kantin.api_url'));
+        return trim((string) config('services.kansor.api_url'));
     }
 
     protected function http(): PendingRequest
     {
         $request = Http::acceptJson()
             ->asJson()
-            ->connectTimeout((int) config('services.pos_kantin.connect_timeout', 10))
-            ->timeout((int) config('services.pos_kantin.timeout', 20))
+            ->connectTimeout((int) config('services.kansor.connect_timeout', 10))
+            ->timeout((int) config('services.kansor.timeout', 20))
             ->retry([250, 500], function (Throwable $exception): bool {
                 return $exception instanceof ConnectionException;
             }, throw: false);
 
-        $caBundle = trim((string) config('services.pos_kantin.ca_bundle'));
+        $caBundle = trim((string) config('services.kansor.ca_bundle'));
 
         if ($caBundle !== '') {
             $request = $request->withOptions([
@@ -151,3 +151,4 @@ trait InteractsWithPosKantinApi
         return 'application';
     }
 }
+

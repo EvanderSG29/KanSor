@@ -78,7 +78,7 @@ test('setup endpoints are hidden outside local environment', function () {
 
 test('admin can access local user index when schema is ready', function () {
     $this->actingAs(schemaReadyAdmin())
-        ->get(route('pos-kantin.admin.users.index'))
+        ->get(route('kansor.admin.users.index'))
         ->assertSuccessful()
         ->assertSee('Daftar pengguna')
         ->assertSee('Tambah pengguna');
@@ -86,6 +86,7 @@ test('admin can access local user index when schema is ready', function () {
 
 test('petugas still receives forbidden on admin user index when schema is ready', function () {
     $this->actingAs(schemaReadyPetugas())
-        ->get(route('pos-kantin.admin.users.index'))
+        ->get(route('kansor.admin.users.index'))
         ->assertForbidden();
 });
+

@@ -19,7 +19,7 @@ Use when task mentions offline login, trusted device, expiry window, auth invali
 ## Acceptance Criteria
 - Online login seeds offline trust.
 - Offline login works before expiry and fails after expiry.
-- Offline session days clamped `min=1` and `max=POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX`.
+- Offline session days clamped `min=1` and `max=KANSOR_OFFLINE_LOGIN_DAYS_MAX`.
 - Offline login invalidated when remote auth snapshot changes.
 # Offline Auth
 
@@ -40,7 +40,7 @@ Automasi pengambilan keputusan antara autentikasi remote dan offline, serta atur
 - app/Models/User.php
 - app/Models/PosKantinDeviceCredential.php
 - app/Http/Requests/LoginRequest.php
-- config/pos_kantin.php
+- config/kansor.php
 - resources/views/auth/login.blade.php
 - database/migrations/*_add_offline_login_columns_to_users.php
 
@@ -70,3 +70,4 @@ Automasi pengambilan keputusan antara autentikasi remote dan offline, serta atur
 - Jika remote tidak tersedia, sistem mencoba login offline.
 - User offline bisa login selama durasi offline aktif.
 - Offline login diblokir ketika user dinonaktifkan atau sesi offline expired.
+

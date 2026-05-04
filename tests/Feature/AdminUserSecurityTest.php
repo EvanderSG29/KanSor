@@ -20,8 +20,8 @@ beforeEach(function () {
 
 test('admin user creation rejects weak passwords', function () {
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.users.create'))
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->from(route('kansor.admin.users.create'))
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Lemah',
             'email' => 'petugas-lemah@example.com',
             'password' => 'password123',
@@ -29,13 +29,13 @@ test('admin user creation rejects weak passwords', function () {
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.create'))
+        ->assertRedirect(route('kansor.admin.users.create'))
         ->assertSessionHasErrors('password');
 });
 
 test('admin user email is normalized to lowercase when stored', function () {
     $this->actingAs($this->admin)
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Besar',
             'email' => 'PETUGAS.UPPER@EXAMPLE.COM',
             'password' => 'KanSor!Pass123',
@@ -43,7 +43,7 @@ test('admin user email is normalized to lowercase when stored', function () {
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $managedUser = User::query()->where('name', 'Petugas Besar')->firstOrFail();
 
@@ -59,8 +59,8 @@ test('admin user email uniqueness is enforced after lowercase normalization', fu
     ]);
 
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.users.create'))
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->from(route('kansor.admin.users.create'))
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Duplikat',
             'email' => 'PETUGAS.SAMA@EXAMPLE.COM',
             'password' => 'KanSor!Pass123',
@@ -68,20 +68,20 @@ test('admin user email uniqueness is enforced after lowercase normalization', fu
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.create'))
+        ->assertRedirect(route('kansor.admin.users.create'))
         ->assertSessionHasErrors('email');
 });
 
 test('last active admin cannot be demoted through the update form', function () {
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.users.edit', $this->admin))
-        ->put(route('pos-kantin.admin.users.update', $this->admin), [
+        ->from(route('kansor.admin.users.edit', $this->admin))
+        ->put(route('kansor.admin.users.update', $this->admin), [
             'name' => 'Admin Tunggal',
             'email' => 'admin@example.com',
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.edit', $this->admin))
+        ->assertRedirect(route('kansor.admin.users.edit', $this->admin))
         ->assertSessionHas('error');
 
     $managedUser = $this->admin->fresh();
@@ -94,14 +94,14 @@ test('last active admin cannot be demoted through the update form', function () 
 
 test('last active admin cannot be set inactive through the update form', function () {
     $this->actingAs($this->admin)
-        ->from(route('pos-kantin.admin.users.edit', $this->admin))
-        ->put(route('pos-kantin.admin.users.update', $this->admin), [
+        ->from(route('kansor.admin.users.edit', $this->admin))
+        ->put(route('kansor.admin.users.update', $this->admin), [
             'name' => 'Admin Tunggal',
             'email' => 'admin@example.com',
             'role' => User::ROLE_ADMIN,
             'active' => '0',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.edit', $this->admin))
+        ->assertRedirect(route('kansor.admin.users.edit', $this->admin))
         ->assertSessionHas('error');
 
     $managedUser = $this->admin->fresh();
@@ -111,3 +111,4 @@ test('last active admin cannot be set inactive through the update form', functio
         ->and($managedUser?->active)->toBeTrue()
         ->and($managedUser?->status)->toBe(User::STATUS_ACTIVE);
 });
+

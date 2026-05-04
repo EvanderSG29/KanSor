@@ -10,11 +10,11 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
     ]);
 
     Http::preventStrayRequests();
@@ -55,13 +55,13 @@ test('creating supplier sends apps script compatible save supplier payload', fun
     $admin = supplierSyncAdmin();
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.suppliers.store'), [
+        ->post(route('kansor.admin.suppliers.store'), [
             'name' => 'Supplier Aktif',
             'contact_info' => '08123',
             'percentage_cut' => 10,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.suppliers.index'))
+        ->assertRedirect(route('kansor.admin.suppliers.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request): bool {
@@ -109,13 +109,13 @@ test('updating supplier sends mapped save supplier payload', function () {
     ]);
 
     $this->actingAs($admin)
-        ->put(route('pos-kantin.admin.suppliers.update', $supplier), [
+        ->put(route('kansor.admin.suppliers.update', $supplier), [
             'name' => 'Supplier Baru',
             'contact_info' => 'Pak Latif - 08123 45678',
             'percentage_cut' => 12.5,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.suppliers.index'))
+        ->assertRedirect(route('kansor.admin.suppliers.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($supplier): bool {
@@ -161,8 +161,8 @@ test('deactivating supplier still sends full save supplier payload', function ()
     ]);
 
     $this->actingAs($admin)
-        ->delete(route('pos-kantin.admin.suppliers.destroy', $supplier))
-        ->assertRedirect(route('pos-kantin.admin.suppliers.index'))
+        ->delete(route('kansor.admin.suppliers.destroy', $supplier))
+        ->assertRedirect(route('kansor.admin.suppliers.index'))
         ->assertSessionHas('sync_notice_status', 'queued');
 
     Http::assertSent(function (Request $request) use ($supplier): bool {
@@ -173,3 +173,4 @@ test('deactivating supplier still sends full save supplier payload', function ()
             && ($request['payload']->isActive ?? null) === false;
     });
 });
+

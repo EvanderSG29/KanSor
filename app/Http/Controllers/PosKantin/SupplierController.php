@@ -14,10 +14,11 @@ class SupplierController extends Controller
         $filters = $request->filters();
         $result = $posKantinLocalRepository->suppliers(auth()->user(), $filters);
 
-        return view('pos-kantin.suppliers.index', [
+        return view('kansor.suppliers.index', [
             'filters' => $filters,
             'suppliers' => $result['items'],
             'summary' => $result['summary'],
         ]);
     }
 }
+

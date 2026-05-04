@@ -7,13 +7,13 @@
 
 <li class="nav-header">OPERASIONAL</li>
 <li class="nav-item">
-    <a href="{{ route('pos-kantin.sales.create') }}" class="nav-link {{ request()->routeIs('pos-kantin.sales.create') ? 'active' : '' }}">
+    <a href="{{ route('kansor.sales.create') }}" class="nav-link {{ request()->routeIs('kansor.sales.create') ? 'active' : '' }}">
         <i class="nav-icon fas fa-cash-register"></i>
         <p>Input Transaksi</p>
     </a>
 </li>
 <li class="nav-item">
-    <a href="{{ route('pos-kantin.sales.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.sales.index') || request()->routeIs('pos-kantin.sales.show') || request()->routeIs('pos-kantin.sales.edit') ? 'active' : '' }}">
+    <a href="{{ route('kansor.sales.index') }}" class="nav-link {{ request()->routeIs('kansor.sales.index') || request()->routeIs('kansor.sales.show') || request()->routeIs('kansor.sales.edit') ? 'active' : '' }}">
         <i class="nav-icon fas fa-history"></i>
         <p>Riwayat Transaksi</p>
     </a>
@@ -23,8 +23,9 @@
 
 <li class="nav-header">PENGATURAN</li>
 <li class="nav-item">
-    <a href="{{ route('pos-kantin.preferences.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.preferences.*') ? 'active' : '' }}">
+    <a href="{{ route('kansor.preferences.index') }}" class="nav-link {{ request()->routeIs('kansor.preferences.*') ? 'active' : '' }}">
         <i class="nav-icon fas fa-sliders-h"></i>
         <p>Preferensi</p>
     </a>
 </li>
+

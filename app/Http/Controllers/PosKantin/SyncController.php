@@ -18,7 +18,7 @@ class SyncController extends Controller
     {
         $user = $request->user();
 
-        return view('pos-kantin.sync.index', [
+        return view('kansor.sync.index', [
             'conflicts' => $posKantinSyncService->unresolvedConflicts($user),
             'recentRuns' => $posKantinSyncService->recentRuns($user),
             'syncStatus' => $posKantinSyncService->statusForUser($user),
@@ -150,3 +150,4 @@ class SyncController extends Controller
             : ($result['message'] ?? 'Gagal mengirim ulang perubahan lokal.'));
     }
 }
+

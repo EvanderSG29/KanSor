@@ -11,11 +11,11 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.admin_email' => 'evandersmidgidiin@gmail.com',
-        'services.pos_kantin.admin_password' => 'secret-password',
-        'services.pos_kantin.timeout' => 20,
-        'services.pos_kantin.connect_timeout' => 10,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
     ]);
 
     Http::preventStrayRequests();
@@ -57,14 +57,14 @@ test('creating food sends apps script compatible save food payload', function ()
     $supplier = Supplier::factory()->create(['active' => true]);
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.foods.store'), [
+        ->post(route('kansor.admin.foods.store'), [
             'supplier_id' => $supplier->id,
             'name' => 'Bakwan',
             'unit' => 'pcs',
             'default_price' => 2500,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.foods.index'))
+        ->assertRedirect(route('kansor.admin.foods.index'))
         ->assertSessionMissing('warning');
 
     Http::assertSent(function (Request $request) use ($supplier): bool {
@@ -112,14 +112,14 @@ test('updating food sends mapped save food payload', function () {
     ]);
 
     $this->actingAs($admin)
-        ->put(route('pos-kantin.admin.foods.update', $food), [
+        ->put(route('kansor.admin.foods.update', $food), [
             'supplier_id' => $newSupplier->id,
             'name' => 'Bakwan Baru',
             'unit' => 'bungkus',
             'default_price' => 3000,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.foods.index'))
+        ->assertRedirect(route('kansor.admin.foods.index'))
         ->assertSessionMissing('warning');
 
     Http::assertSent(function (Request $request) use ($food, $newSupplier): bool {
@@ -167,8 +167,8 @@ test('deactivating food still sends full save food payload', function () {
     ]);
 
     $this->actingAs($admin)
-        ->delete(route('pos-kantin.admin.foods.destroy', $food))
-        ->assertRedirect(route('pos-kantin.admin.foods.index'))
+        ->delete(route('kansor.admin.foods.destroy', $food))
+        ->assertRedirect(route('kansor.admin.foods.index'))
         ->assertSessionMissing('warning');
 
     Http::assertSent(function (Request $request) use ($food, $supplier): bool {
@@ -181,3 +181,4 @@ test('deactivating food still sends full save food payload', function () {
             && ($request['payload']->isActive ?? null) === false;
     });
 });
+

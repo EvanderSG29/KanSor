@@ -39,7 +39,7 @@ test('admin can still create users from the internal admin module', function () 
     ]);
 
     $this->actingAs($admin)
-        ->post(route('pos-kantin.admin.users.store'), [
+        ->post(route('kansor.admin.users.store'), [
             'name' => 'Petugas Internal',
             'email' => 'petugas-internal@example.com',
             'password' => 'KanSor!Pass123',
@@ -47,7 +47,7 @@ test('admin can still create users from the internal admin module', function () 
             'role' => User::ROLE_PETUGAS,
             'active' => '1',
         ])
-        ->assertRedirect(route('pos-kantin.admin.users.index'));
+        ->assertRedirect(route('kansor.admin.users.index'));
 
     $user = User::query()->where('email', 'petugas-internal@example.com')->first();
 
@@ -56,3 +56,4 @@ test('admin can still create users from the internal admin module', function () 
         ->and($user?->active)->toBeTrue()
         ->and(Hash::check('KanSor!Pass123', (string) $user?->password))->toBeTrue();
 });
+

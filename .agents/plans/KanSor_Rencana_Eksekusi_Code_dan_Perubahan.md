@@ -245,7 +245,7 @@ Refactor route group menjadi pola berikut:
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(function () {
+    Route::prefix('kansor')->name('kansor.')->group(function () {
         Route::resource('sales', LocalSaleController::class);
         Route::resource('preferences', PreferenceController::class)
             ->only(['index', 'store', 'update']);
@@ -356,7 +356,7 @@ Pastikan link register di login view tidak tampil.
 ```text
 resources/views/layouts/app.blade.php
 resources/views/home.blade.php
-resources/views/pos-kantin/**/*.blade.php
+resources/views/kansor/**/*.blade.php
 ```
 
 ### Masalah
@@ -422,7 +422,7 @@ app/Models/Sale.php
 app/Http/Controllers/PosKantin/Admin/SaleController.php
 app/Http/Requests/PosKantin/Admin/ConfirmSupplierPaidRequest.php
 app/Http/Requests/PosKantin/Admin/ConfirmCanteenDepositedRequest.php
-resources/views/pos-kantin/admin/sales/show.blade.php
+resources/views/kansor/admin/sales/show.blade.php
 tests/Feature/PosKantinSaleConfirmationTest.php
 ```
 
@@ -587,7 +587,7 @@ user.deactivated
 ### File Target
 
 ```text
-resources/views/pos-kantin/sync/index.blade.php
+resources/views/kansor/sync/index.blade.php
 app/Http/Controllers/PosKantin/SyncController.php
 app/Services/PosKantin/PosKantinSyncService.php
 ```
@@ -639,9 +639,9 @@ Anda akan mengirim ulang data lokal ke server. Pastikan data lokal adalah versi 
 ### File Target
 
 ```text
-resources/views/pos-kantin/sales/_form.blade.php
-resources/views/pos-kantin/sales/create.blade.php
-resources/views/pos-kantin/sales/edit.blade.php
+resources/views/kansor/sales/_form.blade.php
+resources/views/kansor/sales/create.blade.php
+resources/views/kansor/sales/edit.blade.php
 resources/js/app.js
 app/Http/Requests/PosKantin/StoreSaleRequest.php
 app/Http/Requests/PosKantin/UpdateSaleRequest.php
@@ -776,9 +776,9 @@ SESSION_SAME_SITE=strict
 
 BCRYPT_ROUNDS=12
 
-POS_KANTIN_TIMEOUT=20
-POS_KANTIN_CONNECT_TIMEOUT=10
-POS_KANTIN_SYNC_INTERVAL_SECONDS=60
+KANSOR_TIMEOUT=20
+KANSOR_CONNECT_TIMEOUT=10
+KANSOR_SYNC_INTERVAL_SECONDS=60
 ```
 
 ### Gate Debug UI
@@ -1199,3 +1199,4 @@ Urutan paling aman:
 ```
 
 Dengan urutan ini, risiko keamanan dan risiko salah data finansial ditutup lebih dulu sebelum polishing UI/UX.
+

@@ -88,7 +88,7 @@ php artisan native:build win
 ## Sinkronisasi POS
 
 - Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
-- Status sinkronisasi tersedia di halaman `pos-kantin/sinkronisasi`.
+- Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
 - Mendukung:
   - Sync semua antrean.
   - Sync selected outbox.
@@ -100,14 +100,14 @@ php artisan native:build win
 Tersedia command:
 
 ```bash
-php artisan pos-kantin:seed-dummy --all
+php artisan kansor:seed-dummy --all
 ```
 
 Opsi tambahan:
 
 ```bash
-php artisan pos-kantin:seed-dummy --only=users,suppliers,foods,transactions,finance
-php artisan pos-kantin:seed-dummy --fresh --all
+php artisan kansor:seed-dummy --only=users,suppliers,foods,transactions,finance
+php artisan kansor:seed-dummy --fresh --all
 ```
 
 ## Integrasi Apps Script
@@ -142,7 +142,7 @@ php artisan native:build win
 - `apps-script/` — source Google Apps Script backend.
 - `database/migrations/` — skema database lokal.
 - `database/seeders/` — data dummy/seeding modular.
-- `resources/views/pos-kantin/` — UI POS dan sinkronisasi.
+- `resources/views/kansor/` — UI POS dan sinkronisasi.
 
 ## Kontribusi
 
@@ -162,3 +162,4 @@ Jangan commit file rahasia berikut:
 ## Lisensi
 
 Internal project KanSor. Gunakan sesuai kebijakan tim/pemilik repository.
+

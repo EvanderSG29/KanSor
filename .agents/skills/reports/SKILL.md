@@ -29,7 +29,7 @@ Skill ini menangani rekap total kantin, agregasi harian dan bulanan, ringkasan p
 ## Implementation Notes
 - Model terkait: `CanteenTotal`, `Sale`, `Supplier`.
 - Controller terkait: `App\Http\Controllers\PosKantin\Admin\CanteenTotalController`.
-- Command terkait: `pos-kantin:recalculate-canteen-totals`.
+- Command terkait: `kansor:recalculate-canteen-totals`.
 - Service terkait: `CanteenTotalAggregationService`.
 - Hindari kalkulasi total harian tersebar di banyak tempat.
 - Gunakan total `sales.total_canteen` sebagai sumber agregasi.
@@ -39,7 +39,7 @@ Skill ini menangani rekap total kantin, agregasi harian dan bulanan, ringkasan p
 - app/Http/Controllers/PosKantin/Admin/CanteenTotalController.php
 - app/Services/CanteenTotalAggregationService.php
 - app/Console/Commands/RecalculateCanteenTotals.php
-- resources/views/pos-kantin/reports/*.blade.php
+- resources/views/kansor/reports/*.blade.php
 - tests/Feature/Reports*Test.php
 
 ## Data Contract
@@ -57,3 +57,4 @@ Skill ini menangani rekap total kantin, agregasi harian dan bulanan, ringkasan p
 - Admin dapat melihat ringkasan total harian dan bulanan.
 - Command recalculation memperbarui `canteen_totals` dengan benar.
 - Laporan menggunakan nilai `sales.total_canteen` sebagai sumber tunggal.
+

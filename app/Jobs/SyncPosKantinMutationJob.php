@@ -84,7 +84,7 @@ class SyncPosKantinMutationJob implements ShouldQueue
     private function overlapKey(): string
     {
         return implode(':', array_filter([
-            'pos-kantin-sync',
+            'kansor-sync',
             $this->method,
             (string) ($this->context['entity'] ?? ''),
             (string) ($this->context['id'] ?? ''),
@@ -105,3 +105,4 @@ class SyncPosKantinMutationJob implements ShouldQueue
         ]);
     }
 }
+

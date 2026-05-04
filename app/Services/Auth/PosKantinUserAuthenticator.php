@@ -78,8 +78,8 @@ class PosKantinUserAuthenticator
                 $user = new User;
             }
 
-            $preferredOfflineDays = (int) (Preference::query()->where('user_id', $user->getKey())->where('key', 'offline_session_days')->value('value') ?? config('services.pos_kantin.offline_login_days', 30));
-            $maxOfflineDays = (int) config('services.pos_kantin.offline_login_days_max', 30);
+            $preferredOfflineDays = (int) (Preference::query()->where('user_id', $user->getKey())->where('key', 'offline_session_days')->value('value') ?? config('services.kansor.offline_login_days', 30));
+            $maxOfflineDays = (int) config('services.kansor.offline_login_days_max', 30);
             $offlineDays = max(1, min($preferredOfflineDays, $maxOfflineDays));
 
             $user->fill([
@@ -110,7 +110,7 @@ class PosKantinUserAuthenticator
                     'remote_session_token' => $remoteLogin['token'],
                     'remote_session_expires_at' => $remoteLogin['expiresAt'] ?? null,
                     'remote_auth_updated_at' => (string) ($remoteUser['authUpdatedAt'] ?? ''),
-                    'device_label' => (string) config('services.pos_kantin.device_label', 'KanSor Desktop'),
+                    'device_label' => (string) config('services.kansor.device_label', 'KanSor Desktop'),
                 ],
             );
 
@@ -118,3 +118,4 @@ class PosKantinUserAuthenticator
         });
     }
 }
+

@@ -16,8 +16,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.sync_interval_seconds' => 60,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.sync_interval_seconds' => 60,
     ]);
 
     Http::preventStrayRequests();
@@ -479,7 +479,7 @@ test('sync payload encryption migration converts legacy plaintext rows', functio
         'updated_at' => now(),
     ]);
 
-    $migration = require database_path('migrations/2026_04_30_051927_encrypt_pos_kantin_sync_payloads.php');
+    $migration = require database_path('migrations/2026_04_30_051927_encrypt_KANSOR_sync_payloads.php');
     $migration->up();
 
     $rawOutboxPayload = DB::table('pos_sync_outbox')->where('id', $outboxId)->value('payload');
@@ -498,3 +498,4 @@ test('sync payload encryption migration converts legacy plaintext rows', functio
             'supplierName' => 'Supplier Plaintext',
         ]);
 });
+

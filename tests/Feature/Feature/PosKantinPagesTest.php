@@ -9,7 +9,7 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.sync_interval_seconds' => 60,
+        'services.kansor.sync_interval_seconds' => 60,
     ]);
 });
 
@@ -202,7 +202,7 @@ test('reports page shows local summary snapshot', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.reports.index'))
+        ->get(route('kansor.reports.index'))
         ->assertSuccessful()
         ->assertSee('Ringkasan eksekutif')
         ->assertSee('Kelola payout pemasok')
@@ -219,7 +219,7 @@ test('transaction page shows local transaction data', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.transactions.index', ['search' => 'Es Teh']))
+        ->get(route('kansor.transactions.index', ['search' => 'Es Teh']))
         ->assertSuccessful()
         ->assertSee('Daftar transaksi')
         ->assertSee('Es Teh')
@@ -236,7 +236,7 @@ test('savings page shows local saving data', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.savings.index'))
+        ->get(route('kansor.savings.index'))
         ->assertSuccessful()
         ->assertSee('Daftar simpanan')
         ->assertSee('Budi');
@@ -252,7 +252,7 @@ test('supplier page shows local supplier data', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.suppliers.index'))
+        ->get(route('kansor.suppliers.index'))
         ->assertSuccessful()
         ->assertSee('Data pemasok server')
         ->assertSee('Kang Latif');
@@ -268,7 +268,7 @@ test('supplier payout page shows local payout data', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.supplier-payouts.index'))
+        ->get(route('kansor.supplier-payouts.index'))
         ->assertSuccessful()
         ->assertSee('Payout Pemasok Outstanding')
         ->assertSee('Bu Eva');
@@ -284,7 +284,7 @@ test('users page shows local mirrored user data', function () {
     seedLocalPosKantinData($user);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.users.index'))
+        ->get(route('kansor.users.index'))
         ->assertSuccessful()
         ->assertSee('Data pengguna server')
         ->assertSee('Evander Smid Gidiin');
@@ -340,7 +340,7 @@ test('sync page shows conflict comparison details and confirmation copy', functi
     ]);
 
     $this->actingAs($user)
-        ->get(route('pos-kantin.sync.index'))
+        ->get(route('kansor.sync.index'))
         ->assertSuccessful()
         ->assertSee('Konflik sinkronisasi')
         ->assertSee('Field Berbeda')
@@ -420,12 +420,13 @@ test('user data stays isolated per local account scope', function () {
     ]]);
 
     $this->actingAs($userA)
-        ->get(route('pos-kantin.suppliers.index'))
+        ->get(route('kansor.suppliers.index'))
         ->assertSee('Supplier A')
         ->assertDontSee('Supplier B');
 
     $this->actingAs($userB)
-        ->get(route('pos-kantin.suppliers.index'))
+        ->get(route('kansor.suppliers.index'))
         ->assertSee('Supplier B')
         ->assertDontSee('Supplier A');
 });
+

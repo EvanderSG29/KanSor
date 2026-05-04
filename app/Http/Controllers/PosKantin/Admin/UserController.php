@@ -24,7 +24,7 @@ class UserController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pos-kantin.admin.users.index', [
+        return view('kansor.admin.users.index', [
             'filters' => $request->only(['role', 'active']),
             'users' => $users,
         ]);
@@ -32,7 +32,7 @@ class UserController extends Controller
 
     public function create(): View
     {
-        return view('pos-kantin.admin.users.create');
+        return view('kansor.admin.users.create');
     }
 
     public function store(
@@ -64,7 +64,7 @@ class UserController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.users.index')
+                ->route('kansor.admin.users.index')
                 ->with('status', 'Pengguna berhasil ditambahkan.'),
             $dispatchResult,
         );
@@ -72,7 +72,7 @@ class UserController extends Controller
 
     public function edit(User $user): View
     {
-        return view('pos-kantin.admin.users.edit', [
+        return view('kansor.admin.users.edit', [
             'userModel' => $user,
         ]);
     }
@@ -127,7 +127,7 @@ class UserController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.users.index')
+                ->route('kansor.admin.users.index')
                 ->with('status', 'Pengguna berhasil diperbarui.'),
             $dispatchResult,
         );
@@ -165,7 +165,7 @@ class UserController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.users.index')
+                ->route('kansor.admin.users.index')
                 ->with('status', 'Pengguna berhasil dinonaktifkan.'),
             $dispatchResult,
         );
@@ -194,3 +194,4 @@ class UserController extends Controller
             ->doesntExist();
     }
 }
+

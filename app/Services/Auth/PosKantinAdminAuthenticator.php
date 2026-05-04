@@ -10,8 +10,8 @@ class PosKantinAdminAuthenticator
 {
     public function synchronizeAndResolve(Request $request): ?User
     {
-        $configuredEmail = trim((string) config('services.pos_kantin.admin_email'));
-        $configuredPassword = (string) config('services.pos_kantin.admin_password');
+        $configuredEmail = trim((string) config('services.kansor.admin_email'));
+        $configuredPassword = (string) config('services.kansor.admin_password');
         $requestEmail = trim((string) $request->input('email'));
         $requestPassword = (string) $request->input('password');
 
@@ -67,3 +67,4 @@ class PosKantinAdminAuthenticator
         return $name !== '' ? $name : 'KanSor Admin';
     }
 }
+

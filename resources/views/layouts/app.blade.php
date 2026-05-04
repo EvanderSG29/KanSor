@@ -257,9 +257,9 @@
         @endif
         @php
             $kanSorSync = [
-                'statusUrl' => route('pos-kantin.sync.status'),
-                'autoUrl' => route('pos-kantin.sync.auto'),
-                'intervalSeconds' => (int) ($kanSorSyncNavigationStatus['syncIntervalSeconds'] ?? config('services.pos_kantin.sync_interval_seconds', 60)),
+                'statusUrl' => route('kansor.sync.status'),
+                'autoUrl' => route('kansor.sync.auto'),
+                'intervalSeconds' => (int) ($kanSorSyncNavigationStatus['syncIntervalSeconds'] ?? config('services.kansor.sync_interval_seconds', 60)),
             ];
         @endphp
         <script>
@@ -299,7 +299,7 @@
                         </li>
                         @if ($currentUser?->isAdmin())
                             <li class="nav-item d-none d-lg-inline-block">
-                                <a href="{{ route('pos-kantin.reports.index') }}" class="nav-link {{ request()->routeIs('pos-kantin.reports.*') ? 'active' : '' }}">Laporan Operasional</a>
+                                <a href="{{ route('kansor.reports.index') }}" class="nav-link {{ request()->routeIs('kansor.reports.*') ? 'active' : '' }}">Laporan Operasional</a>
                             </li>
                         @endif
                         @if (! $isNativeDesktop)
@@ -487,3 +487,4 @@
     @stack('scripts')
 </body>
 </html>
+

@@ -13,9 +13,10 @@ class UserController extends Controller
     {
         $result = $posKantinLocalRepository->users(auth()->user());
 
-        return view('pos-kantin.users.index', [
+        return view('kansor.users.index', [
             'summary' => $result['summary'],
             'users' => $result['items'],
         ]);
     }
 }
+

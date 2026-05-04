@@ -35,7 +35,7 @@ class SaleController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pos-kantin.admin.sales.index', [
+        return view('kansor.admin.sales.index', [
             'filters' => $request->only(['supplier_id', 'status_i', 'status_ii', 'from', 'to']),
             'sales' => $sales,
             'suppliers' => Supplier::query()->orderBy('name')->get(),
@@ -44,7 +44,7 @@ class SaleController extends Controller
 
     public function show(Sale $sale): View
     {
-        return view('pos-kantin.admin.sales.show', [
+        return view('kansor.admin.sales.show', [
             'sale' => $sale->load([
                 'supplier',
                 'user',
@@ -59,7 +59,7 @@ class SaleController extends Controller
     {
         $sale->load('items.food');
 
-        return view('pos-kantin.admin.sales.edit', [
+        return view('kansor.admin.sales.edit', [
             'sale' => $sale,
             'suppliers' => Supplier::query()->orderBy('name')->get(),
             'foods' => Food::query()
@@ -114,7 +114,7 @@ class SaleController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.sales.show', $sale)
+                ->route('kansor.admin.sales.show', $sale)
                 ->with('status', 'Transaksi berhasil dikoreksi.'),
             $dispatchResult,
         );
@@ -146,7 +146,7 @@ class SaleController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.sales.index')
+                ->route('kansor.admin.sales.index')
                 ->with('status', 'Transaksi berhasil dihapus dari operasional aktif.'),
             $dispatchResult,
         );
@@ -233,3 +233,4 @@ class SaleController extends Controller
         ];
     }
 }
+

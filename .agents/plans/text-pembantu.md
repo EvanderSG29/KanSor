@@ -1,6 +1,6 @@
 1. Audit login online 1 kali, offline berkali-kali sampai 30 hari
 
-Secara konsep, backend Laravel sudah mendekati requirement Anda. PosKantinUserAuthenticator mencoba login remote lebih dulu. Jika gagal karena koneksi/configuration, sistem fallback ke offline login lokal. Saat online login berhasil, user lokal disimpan dan offline_login_expires_at diisi dengan services.pos_kantin.offline_login_days, default 30 hari.
+Secara konsep, backend Laravel sudah mendekati requirement Anda. PosKantinUserAuthenticator mencoba login remote lebih dulu. Jika gagal karena koneksi/configuration, sistem fallback ke offline login lokal. Saat online login berhasil, user lokal disimpan dan offline_login_expires_at diisi dengan services.kansor.offline_login_days, default 30 hari.
 
 Offline login juga tidak asal menerima user lokal. OfflineLoginService mengecek user aktif, password lokal valid, credential perangkat ada, dan trusted device belum expired. Model User juga membatasi offline login hanya untuk user aktif dengan offline_login_expires_at masih di masa depan.
 
@@ -257,11 +257,11 @@ Deploy > New deployment > API Executable
 
 Tes health:
 
-curl -s "$POS_KANTIN_API_URL?action=health"
+curl -s "$KANSOR_API_URL?action=health"
 
 Tes login:
 
-curl -s -X POST "$POS_KANTIN_API_URL" \
+curl -s -X POST "$KANSOR_API_URL" \
   -H "Content-Type: application/json" \
   -d '{"action":"login","payload":{"email":"evandersmidgidiin@gmail.com","password":"PASSWORD_KUAT_ANDA"}}'
 
@@ -273,21 +273,21 @@ Catatan wajib dari README repo: jangan commit .clasp.json, .clasprc.json, client
 
 Yang saya sarankan ditambah:
 
-POS_KANTIN_API_URL=
-POS_KANTIN_ADMIN_EMAIL=
-POS_KANTIN_ADMIN_PASSWORD=
-POS_KANTIN_TIMEOUT=20
-POS_KANTIN_CONNECT_TIMEOUT=10
+KANSOR_API_URL=
+KANSOR_ADMIN_EMAIL=
+KANSOR_ADMIN_PASSWORD=
+KANSOR_TIMEOUT=20
+KANSOR_CONNECT_TIMEOUT=10
 
-POS_KANTIN_DEVICE_LABEL="KanSor Desktop"
-POS_KANTIN_OFFLINE_LOGIN_DAYS=30
-POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX=30
-POS_KANTIN_SYNC_INTERVAL_SECONDS=60
-POS_KANTIN_SYNC_BATCH_SIZE=50
-POS_KANTIN_SYNC_MODE=manual
+KANSOR_DEVICE_LABEL="KanSor Desktop"
+KANSOR_OFFLINE_LOGIN_DAYS=30
+KANSOR_OFFLINE_LOGIN_DAYS_MAX=30
+KANSOR_SYNC_INTERVAL_SECONDS=60
+KANSOR_SYNC_BATCH_SIZE=50
+KANSOR_SYNC_MODE=manual
 
-POS_KANTIN_API_DISPLAY_NAME="KanSor API"
-POS_KANTIN_SPREADSHEET_TITLE="KanSor Database"
+KANSOR_API_DISPLAY_NAME="KanSor API"
+KANSOR_SPREADSHEET_TITLE="KanSor Database"
 
 NATIVEPHP_APP_ID=id.kansor.desktop
 NATIVEPHP_APP_NAME=KanSor
@@ -391,13 +391,13 @@ php artisan db:seed --class=KanSorTransactionDummySeeder
 
 Command custom yang lebih enak untuk development:
 
-php artisan pos-kantin:seed-dummy --all
-php artisan pos-kantin:seed-dummy --only=suppliers
-php artisan pos-kantin:seed-dummy --only=foods
-php artisan pos-kantin:seed-dummy --only=transactions
-php artisan pos-kantin:seed-dummy --supplier=Uni
-php artisan pos-kantin:seed-dummy --date=2026-04-30
-php artisan pos-kantin:seed-dummy --fresh
+php artisan kansor:seed-dummy --all
+php artisan kansor:seed-dummy --only=suppliers
+php artisan kansor:seed-dummy --only=foods
+php artisan kansor:seed-dummy --only=transactions
+php artisan kansor:seed-dummy --supplier=Uni
+php artisan kansor:seed-dummy --date=2026-04-30
+php artisan kansor:seed-dummy --fresh
 
 Laravel mendukung menjalankan seeder spesifik, dan factory/seeder memang pola standar untuk data development/testing.
 
@@ -409,7 +409,7 @@ salman@example.test
 
 Bila perlu data asli untuk dev internal, buat flag eksplisit:
 
-php artisan pos-kantin:seed-dummy --all --use-uploaded-real-identities
+php artisan kansor:seed-dummy --all --use-uploaded-real-identities
 10. Perapihan .agents/skills
 
 Repo sekarang punya daftar skill POS: users, suppliers, foods, transactions, reports, dan rencana-rancangan. Isi domain skill sudah cukup berguna, misalnya foods menjelaskan relasi makanan ke pemasok, validasi supplier, dropdown transaksi, dan status aktif. transactions juga sudah memuat input multi item, validasi nested items, perhitungan total, dan status final.
@@ -517,7 +517,7 @@ Patch 5 — Selective manual sync
 Patch 6 — Offline login user preference
 - Tambah setting offline_session_days.
 - Default 30 dari env.
-- Clamp minimum 1, maksimum dari POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX.
+- Clamp minimum 1, maksimum dari KANSOR_OFFLINE_LOGIN_DAYS_MAX.
 - Saat password/status remote berubah, invalidate offline login.
 - Tambah test online login, offline valid, offline expired, remote auth changed.
 
@@ -526,7 +526,7 @@ Patch 7 — Dummy data dari XLSX
 - Buat seeder terpisah users, suppliers, foods, transactions, finance.
 - Ambil mapping pemasok/makanan dari XLSX upload.
 - Normalisasi nama makanan.
-- Tambah command php artisan pos-kantin:seed-dummy dengan opsi --all, --only, --supplier, --date, --fresh.
+- Tambah command php artisan kansor:seed-dummy dengan opsi --all, --only, --supplier, --date, --fresh.
 
 Patch 8 — CLASP verification docs
 - Dokumentasikan login clasp with project scopes.
@@ -556,7 +556,7 @@ Validasi akhir:
 - vendor/bin/pint --dirty --format agent
 - npm run build
 - php artisan native:build win
-- curl "$POS_KANTIN_API_URL?action=health"
+- curl "$KANSOR_API_URL?action=health"
 - Manual test login online/offline
 - Manual test supplier-food offline
 - Manual test sync selected

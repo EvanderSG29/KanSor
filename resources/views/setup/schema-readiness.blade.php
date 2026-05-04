@@ -6,7 +6,7 @@
 
 @section('content')
 <div class="login-box" style="width:min(100%,34rem);">
-    @include('pos-kantin.partials.alerts')
+    @include('kansor.partials.alerts')
 
     <div class="card card-outline card-warning">
         <div class="card-header text-center">
@@ -134,3 +134,4 @@
         });
     </script>
 @endpush
+

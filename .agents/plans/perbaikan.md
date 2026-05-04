@@ -51,7 +51,7 @@ Patch 5 — Selective manual sync
 Patch 6 — Offline login user preference
 - Tambah setting offline_session_days.
 - Default 30 dari env.
-- Clamp minimum 1, maksimum dari POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX.
+- Clamp minimum 1, maksimum dari KANSOR_OFFLINE_LOGIN_DAYS_MAX.
 - Saat password/status remote berubah, invalidate offline login.
 - Tambah test online login, offline valid, offline expired, remote auth changed.
 
@@ -60,7 +60,7 @@ Patch 7 — Dummy data dari XLSX
 - Buat seeder terpisah users, suppliers, foods, transactions, finance.
 - Ambil mapping pemasok/makanan dari XLSX upload.
 - Normalisasi nama makanan.
-- Tambah command php artisan pos-kantin:seed-dummy dengan opsi --all, --only, --supplier, --date, --fresh.
+- Tambah command php artisan kansor:seed-dummy dengan opsi --all, --only, --supplier, --date, --fresh.
 
 Patch 8 — CLASP verification docs
 - Dokumentasikan login clasp with project scopes.
@@ -90,7 +90,7 @@ Validasi akhir:
 - vendor/bin/pint --dirty --format agent
 - npm run build
 - php artisan native:build win
-- curl "$POS_KANTIN_API_URL?action=health"
+- curl "$KANSOR_API_URL?action=health"
 - Manual test login online/offline
 - Manual test supplier-food offline
 - Manual test sync selected

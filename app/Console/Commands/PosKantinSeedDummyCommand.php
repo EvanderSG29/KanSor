@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Artisan;
 
 class PosKantinSeedDummyCommand extends Command
 {
-    protected $signature = 'pos-kantin:seed-dummy
+    protected $signature = 'kansor:seed-dummy
         {--all : Seed semua data dummy}
         {--only= : Pilih modul: users,suppliers,foods,transactions,finance}
         {--supplier= : Filter supplier (best effort)}
@@ -71,3 +71,4 @@ class PosKantinSeedDummyCommand extends Command
         return self::SUCCESS;
     }
 }
+

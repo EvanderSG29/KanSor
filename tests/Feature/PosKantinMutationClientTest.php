@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     Config::set('cache.default', 'array');
-    Config::set('services.pos_kantin.api_url', 'https://example.test/macros/s/api/exec');
-    Config::set('services.pos_kantin.admin_email', 'evandersmidgidiin@gmail.com');
-    Config::set('services.pos_kantin.admin_password', 'secret-password');
-    Config::set('services.pos_kantin.timeout', 20);
-    Config::set('services.pos_kantin.connect_timeout', 10);
+    Config::set('services.kansor.api_url', 'https://example.test/macros/s/api/exec');
+    Config::set('services.kansor.admin_email', 'evandersmidgidiin@gmail.com');
+    Config::set('services.kansor.admin_password', 'secret-password');
+    Config::set('services.kansor.timeout', 20);
+    Config::set('services.kansor.connect_timeout', 10);
     Cache::flush();
     Http::preventStrayRequests();
 });
@@ -213,3 +213,4 @@ test('client mutation wrapper surfaces backend failure', function () {
     ]))
         ->toThrow(PosKantinException::class, 'Action belum tersedia.');
 });
+

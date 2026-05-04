@@ -45,7 +45,7 @@ class CanteenTotalController extends Controller
             ->sortByDesc('total_canteen')
             ->values();
 
-        return view('pos-kantin.admin.canteen-totals.index', [
+        return view('kansor.admin.canteen-totals.index', [
             'canteenTotals' => $canteenTotals,
             'filters' => $request->only(['from', 'to', 'month']),
             'supplierSummary' => $supplierSummary,
@@ -53,3 +53,4 @@ class CanteenTotalController extends Controller
         ]);
     }
 }
+

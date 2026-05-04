@@ -45,7 +45,7 @@ test('supplier confirmation does not overwrite canteen deposit fields', function
     ]);
 
     $this->actingAs($this->admin)
-        ->patch(route('pos-kantin.admin.sales.confirm-supplier-paid', $sale), [
+        ->patch(route('kansor.admin.sales.confirm-supplier-paid', $sale), [
             'paid_at' => '2026-04-30',
             'paid_amount' => 18000,
             'taken_note' => 'Pembayaran pemasok lunas',
@@ -87,7 +87,7 @@ test('canteen deposit confirmation does not overwrite supplier payment fields', 
     ]);
 
     $this->actingAs($this->admin)
-        ->patch(route('pos-kantin.admin.sales.confirm-canteen-deposited', $sale), [
+        ->patch(route('kansor.admin.sales.confirm-canteen-deposited', $sale), [
             'paid_at' => '2026-04-30',
             'paid_amount' => 3500,
             'taken_note' => 'Setor ke kas harian',
@@ -139,7 +139,7 @@ test('admin sale detail shows separate supplier and canteen confirmation blocks'
     ]);
 
     $this->actingAs($this->admin)
-        ->get(route('pos-kantin.admin.sales.show', $sale))
+        ->get(route('kansor.admin.sales.show', $sale))
         ->assertSuccessful()
         ->assertSee('Konfirmasi pemasok')
         ->assertSee('Konfirmasi setoran kantin')
@@ -150,3 +150,4 @@ test('admin sale detail shows separate supplier and canteen confirmation blocks'
         ->assertSee('Rp 18.000')
         ->assertSee('Rp 4.000');
 });
+

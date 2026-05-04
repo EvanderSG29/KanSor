@@ -26,7 +26,7 @@ class FoodController extends Controller
             ->paginate(15)
             ->withQueryString();
 
-        return view('pos-kantin.admin.foods.index', [
+        return view('kansor.admin.foods.index', [
             'filters' => $request->only(['supplier_id', 'active', 'search']),
             'foods' => $foods,
             'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
@@ -35,7 +35,7 @@ class FoodController extends Controller
 
     public function create(): View
     {
-        return view('pos-kantin.admin.foods.create', [
+        return view('kansor.admin.foods.create', [
             'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
         ]);
     }
@@ -56,7 +56,7 @@ class FoodController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.foods.index')
+                ->route('kansor.admin.foods.index')
                 ->with('status', 'Makanan berhasil ditambahkan.'),
             $dispatchResult,
         );
@@ -64,7 +64,7 @@ class FoodController extends Controller
 
     public function edit(Food $food): View
     {
-        return view('pos-kantin.admin.foods.edit', [
+        return view('kansor.admin.foods.edit', [
             'food' => $food,
             'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
         ]);
@@ -87,7 +87,7 @@ class FoodController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.foods.index')
+                ->route('kansor.admin.foods.index')
                 ->with('status', 'Makanan berhasil diperbarui.'),
             $dispatchResult,
         );
@@ -111,9 +111,10 @@ class FoodController extends Controller
 
         return $this->withPosKantinDispatchNotice(
             redirect()
-                ->route('pos-kantin.admin.foods.index')
+                ->route('kansor.admin.foods.index')
                 ->with('status', 'Makanan berhasil dinonaktifkan.'),
             $dispatchResult,
         );
     }
 }
+

@@ -29,7 +29,7 @@ Skill ini menangani manajemen pemasok lokal POS Kantin, termasuk data kontak, po
 ## Implementation Notes
 - Model terkait: `Supplier`, `Food`, `Sale`.
 - Controller terkait: `App\Http\Controllers\PosKantin\Admin\SupplierController`.
-- Route terkait: `pos-kantin.admin.suppliers.*`.
+- Route terkait: `kansor.admin.suppliers.*`.
 - Relasi: `Supplier hasMany Food`, `Supplier hasMany Sale`.
 - Jangan hard delete pemasok aktif historis.
 - Pemasok nonaktif tidak boleh muncul pada transaksi baru.
@@ -39,7 +39,7 @@ Skill ini menangani manajemen pemasok lokal POS Kantin, termasuk data kontak, po
 - app/Http/Controllers/PosKantin/Admin/SupplierController.php
 - app/Http/Requests/StoreSupplierRequest.php
 - app/Http/Requests/UpdateSupplierRequest.php
-- resources/views/pos-kantin/suppliers/*.blade.php
+- resources/views/kansor/suppliers/*.blade.php
 - routes/web.php
 - tests/Feature/Supplier*Test.php
 
@@ -59,3 +59,4 @@ Skill ini menangani manajemen pemasok lokal POS Kantin, termasuk data kontak, po
 - Supplier dapat ditambah, diperbarui, dan dinonaktifkan.
 - Supplier nonaktif tidak tersedia untuk transaksi baru.
 - Perubahan supplier diselaraskan ke payload sinkronisasi supplier.
+

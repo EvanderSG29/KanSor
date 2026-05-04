@@ -17,12 +17,12 @@ class PreferenceController extends Controller
             ->whereBelongsTo(auth()->user())
             ->pluck('value', 'key');
 
-        return view('pos-kantin.preferences.index', [
+        return view('kansor.preferences.index', [
             'preferences' => [
                 'sync_interval' => $preferences['sync_interval'] ?? '60',
                 'theme' => $preferences['theme'] ?? 'system',
                 'rows_per_page' => $preferences['rows_per_page'] ?? '10',
-                'offline_session_days' => $preferences['offline_session_days'] ?? (string) config('services.pos_kantin.offline_login_days', 30),
+                'offline_session_days' => $preferences['offline_session_days'] ?? (string) config('services.kansor.offline_login_days', 30),
             ],
         ]);
     }
@@ -42,7 +42,7 @@ class PreferenceController extends Controller
         }
 
         return redirect()
-            ->route('pos-kantin.preferences.index')
+            ->route('kansor.preferences.index')
             ->with('status', 'Preferensi berhasil disimpan.');
     }
 
@@ -55,7 +55,8 @@ class PreferenceController extends Controller
         ]);
 
         return redirect()
-            ->route('pos-kantin.preferences.index')
+            ->route('kansor.preferences.index')
             ->with('status', 'Preferensi berhasil diperbarui.');
     }
 }
+

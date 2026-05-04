@@ -58,8 +58,8 @@ class PosKantinClient
     {
         $this->ensureConfigured();
 
-        $email = (string) config('services.pos_kantin.admin_email');
-        $password = (string) config('services.pos_kantin.admin_password');
+        $email = (string) config('services.kansor.admin_email');
+        $password = (string) config('services.kansor.admin_password');
 
         if ($email === '' || $password === '') {
             throw new PosKantinException('Kredensial admin KanSor belum lengkap di environment.');
@@ -352,3 +352,4 @@ class PosKantinClient
         return is_array($data) ? $data : [];
     }
 }
+

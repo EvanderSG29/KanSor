@@ -112,7 +112,7 @@ class PosKantinSyncService
             'lastRemoteSyncAt' => optional($credential?->last_remote_sync_at)->toIso8601String(),
             'offlineLoginExpiresAt' => optional($user->offline_login_expires_at)->toIso8601String(),
             'trustedDeviceExpiresAt' => optional($credential?->trusted_device_expires_at)->toIso8601String(),
-            'syncIntervalSeconds' => (int) config('services.pos_kantin.sync_interval_seconds', 60),
+            'syncIntervalSeconds' => (int) config('services.kansor.sync_interval_seconds', 60),
         ];
     }
 
@@ -595,3 +595,4 @@ class PosKantinSyncService
         return trim((string) $value);
     }
 }
+

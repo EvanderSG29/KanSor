@@ -30,7 +30,7 @@ Skill ini menangani CRUD pengguna lokal POS Kantin untuk peran admin dan petugas
 ## Implementation Notes
 - Model terkait: `User`.
 - Controller terkait: `App\Http\Controllers\PosKantin\Admin\UserController`.
-- Route terkait: `pos-kantin.admin.users.*`.
+- Route terkait: `kansor.admin.users.*`.
 - Validasi wajib menggunakan `StoreUserRequest` dan `UpdateUserRequest`.
 - `active=false` harus diselaraskan menjadi `status=nonaktif`.
 - Jangan izinkan admin aktif terakhir dinonaktifkan.
@@ -41,7 +41,7 @@ Skill ini menangani CRUD pengguna lokal POS Kantin untuk peran admin dan petugas
 - app/Http/Controllers/PosKantin/Admin/UserController.php
 - app/Http/Requests/StoreUserRequest.php
 - app/Http/Requests/UpdateUserRequest.php
-- resources/views/pos-kantin/users/*.blade.php
+- resources/views/kansor/users/*.blade.php
 - tests/Feature/User*Test.php
 
 ## Data Contract
@@ -62,3 +62,4 @@ Skill ini menangani CRUD pengguna lokal POS Kantin untuk peran admin dan petugas
 - Status nonaktif tidak menghapus histori user.
 - Guard admin dan validasi role berjalan sesuai aturan.
 - Data user dapat diolah untuk sinkronisasi dengan layanan POS.
+

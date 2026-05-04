@@ -8,7 +8,7 @@ use Illuminate\Console\Command;
 
 class PosKantinMigrateLegacySpreadsheetCommand extends Command
 {
-    protected $signature = 'pos-kantin:migrate-legacy-spreadsheet
+    protected $signature = 'kansor:migrate-legacy-spreadsheet
         {--source= : Spreadsheet ID lama yang akan dibaca}
         {--commit : Jalankan overwrite ke spreadsheet target. Tanpa opsi ini, command hanya preview}
         {--include-users : Ikut migrasi sheet users tanpa membawa kredensial lama}
@@ -21,10 +21,10 @@ class PosKantinMigrateLegacySpreadsheetCommand extends Command
      */
     public function handle(PosKantinClient $posKantinClient): int
     {
-        $sourceSpreadsheetId = trim((string) ($this->option('source') ?: config('services.pos_kantin.legacy_spreadsheet_id')));
+        $sourceSpreadsheetId = trim((string) ($this->option('source') ?: config('services.kansor.legacy_spreadsheet_id')));
 
         if ($sourceSpreadsheetId === '') {
-            $this->error('Spreadsheet sumber belum diisi. Pakai --source=... atau set POS_KANTIN_LEGACY_SPREADSHEET_ID.');
+            $this->error('Spreadsheet sumber belum diisi. Pakai --source=... atau set KANSOR_LEGACY_SPREADSHEET_ID.');
 
             return self::FAILURE;
         }
@@ -98,7 +98,7 @@ class PosKantinMigrateLegacySpreadsheetCommand extends Command
     protected function renderMigrationError(PosKantinException $exception): void
     {
         if ($this->isMissingMigrationAction($exception)) {
-            $this->error('Deployment Web App Apps Script yang dipakai POS_KANTIN_API_URL masih versi lama dan belum punya action migrateLegacySpreadsheet.');
+            $this->error('Deployment Web App Apps Script yang dipakai KANSOR_API_URL masih versi lama dan belum punya action migrateLegacySpreadsheet.');
             $this->line('Arah perbaikannya: push source apps-script terbaru, lalu update deployment Web App yang sama sebelum jalankan command ini lagi.');
 
             return;
@@ -112,3 +112,4 @@ class PosKantinMigrateLegacySpreadsheetCommand extends Command
         return str_contains($exception->getMessage(), 'Action tidak dikenal: migrateLegacySpreadsheet');
     }
 }
+

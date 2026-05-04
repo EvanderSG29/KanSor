@@ -53,8 +53,9 @@
 
 ## Rollback
 
-1. Kosongkan konfigurasi `POS_KANTIN_*` di environment Laravel.
+1. Kosongkan konfigurasi `KANSOR_*` di environment Laravel.
 2. Kembalikan route atau tampilan dashboard ke versi lokal-only jika diperlukan.
 3. Hapus atau nonaktifkan deployment Apps Script baru dari akun Google terkait.
 4. Arsipkan spreadsheet baru tanpa menyentuh spreadsheet lama.
 5. Rollback commit integrasi bila perilaku aplikasi utama terganggu.
+

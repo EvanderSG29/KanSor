@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     Config::set('cache.default', 'array');
-    Config::set('services.pos_kantin.api_url', 'https://example.test/macros/s/api/exec');
-    Config::set('services.pos_kantin.admin_email', 'evandersmidgidiin@gmail.com');
-    Config::set('services.pos_kantin.admin_password', 'secret-password');
-    Config::set('services.pos_kantin.timeout', 20);
-    Config::set('services.pos_kantin.connect_timeout', 10);
+    Config::set('services.kansor.api_url', 'https://example.test/macros/s/api/exec');
+    Config::set('services.kansor.admin_email', 'evandersmidgidiin@gmail.com');
+    Config::set('services.kansor.admin_password', 'secret-password');
+    Config::set('services.kansor.timeout', 20);
+    Config::set('services.kansor.connect_timeout', 10);
     Cache::flush();
     Http::preventStrayRequests();
 });
@@ -109,7 +109,7 @@ test('it refreshes cached token when backend session expires', function () {
         },
     ]);
 
-    Cache::put('pos_kantin.service_account.token', [
+    Cache::put('kansor.service_account.token', [
         'token' => 'expired-token',
         'expires_at' => now()->addHour()->toIso8601String(),
     ], now()->addHour());
@@ -151,7 +151,7 @@ test('it wraps connection failures in pos kantin exception', function () {
 });
 
 test('it throws an exception when backend url is missing', function () {
-    Config::set('services.pos_kantin.api_url', null);
+    Config::set('services.kansor.api_url', null);
 
     expect(fn () => app(PosKantinClient::class)->health())
         ->toThrow(PosKantinException::class, 'POS Kantin API URL belum dikonfigurasi.');
@@ -208,3 +208,4 @@ test('it can request legacy spreadsheet migration preview', function () {
         ->and($result['sourceSpreadsheet']['id'])->toBe('legacy-sheet-id')
         ->and($result['sheets'][0]['sheetKey'])->toBe('buyers');
 });
+

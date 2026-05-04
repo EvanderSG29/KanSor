@@ -13,10 +13,11 @@ class SupplierPayoutController extends Controller
     {
         $payouts = $posKantinLocalRepository->supplierPayouts(auth()->user());
 
-        return view('pos-kantin.supplier-payouts.index', [
+        return view('kansor.supplier-payouts.index', [
             'history' => $payouts['history'],
             'outstanding' => $payouts['outstanding'],
             'summary' => $payouts['summary'],
         ]);
     }
 }
+

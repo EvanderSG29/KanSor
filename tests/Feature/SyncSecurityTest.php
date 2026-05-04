@@ -11,8 +11,8 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     config([
-        'services.pos_kantin.api_url' => 'https://example.test/macros/s/api/exec',
-        'services.pos_kantin.sync_interval_seconds' => 60,
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.sync_interval_seconds' => 60,
     ]);
 
     Http::preventStrayRequests();
@@ -42,14 +42,14 @@ test('auto sync route is rate limited per authenticated user', function () {
     $this->app->instance(PosKantinSyncService::class, $syncService);
 
     $this->actingAs($user)
-        ->postJson(route('pos-kantin.sync.auto'))
+        ->postJson(route('kansor.sync.auto'))
         ->assertOk()
         ->assertJson([
             'success' => true,
         ]);
 
     $this->actingAs($user)
-        ->postJson(route('pos-kantin.sync.auto'))
+        ->postJson(route('kansor.sync.auto'))
         ->assertStatus(429)
         ->assertJson([
             'success' => false,
@@ -93,8 +93,9 @@ test('manual sync route shows the lock message to the user', function () {
     $this->app->instance(PosKantinSyncService::class, $syncService);
 
     $this->actingAs($user)
-        ->from(route('pos-kantin.sync.index'))
-        ->post(route('pos-kantin.sync.run'))
-        ->assertRedirect(route('pos-kantin.sync.index'))
+        ->from(route('kansor.sync.index'))
+        ->post(route('kansor.sync.run'))
+        ->assertRedirect(route('kansor.sync.index'))
         ->assertSessionHas('error', 'Sinkronisasi untuk akun ini sedang berjalan. Tunggu beberapa detik lalu coba lagi.');
 });
+
