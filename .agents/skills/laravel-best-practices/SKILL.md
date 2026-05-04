@@ -188,3 +188,23 @@ Always use a sub-agent to read rule files and explore this skill's content.
 1. Identify the file type and select relevant sections (e.g., migration → §16, controller → §1, §3, §5, §6, §10)
 2. Check sibling files for existing patterns — follow those first per Consistency First
 3. Verify API syntax with `search-docs` for the installed Laravel version
+
+## Files Touched
+- app/**/*.php
+- routes/web.php
+- database/migrations/*.php
+- tests/Feature/*.php
+- tests/Unit/*.php
+
+## Data Contract
+- Config values, request validation arrays, Eloquent models, and response payloads vary by task.
+
+## Testing Wajib
+- Unit tests for model logic and policies.
+- Feature tests for controllers, requests, and middleware.
+- Migration tests when schema changes are introduced.
+
+## Acceptance Criteria
+- Code follows existing Laravel conventions in the repository.
+- No new anti-patterns are introduced.
+- New backend functionality is covered by tests.

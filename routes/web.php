@@ -42,6 +42,14 @@ Route::middleware('auth')->group(function () {
         ->name('native.desktop.telescope-window');
 });
 
+
+Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
+    Route::redirect('/pos-kantin', '/kansor', 301);
+    Route::get('/pos-kantin/{path}', function (string $path) {
+        return redirect('/kansor/'.$path, 301);
+    })->where('path', '.*');
+});
+
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
@@ -60,6 +68,23 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
         Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name($namePrefix.'sync.retry');
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name($namePrefix.'sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name($namePrefix.'sync.outbox.resend');
+    Route::prefix('kansor')->name('pos-kantin.')->group(function () {
+        Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
+        Route::get('/simpanan', [SavingController::class, 'index'])->name('savings.index');
+        Route::get('/pemasok', [SupplierController::class, 'index'])->name('suppliers.index');
+        Route::get('/pembayaran', [SupplierPayoutController::class, 'index'])->name('supplier-payouts.index');
+        Route::get('/laporan', [ReportController::class, 'index'])->name('reports.index');
+        Route::get('/pengguna', [UserController::class, 'index'])->name('users.index');
+        Route::get('/sinkronisasi', [SyncController::class, 'index'])->name('sync.index');
+        Route::get('/sinkronisasi/status', [SyncController::class, 'status'])->name('sync.status');
+        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])
+            ->middleware('throttle:sync-auto')
+            ->name('sync.auto');
+        Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name('sync.run');
+        Route::post('/sinkronisasi/jalankan-terpilih', [SyncController::class, 'runSelected'])->name('sync.run-selected');
+        Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
+        Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
+        Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
 
         Route::prefix('admin')->name($namePrefix.'admin.')->middleware('role:admin')->group(function () use ($namePrefix): void {
             Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');

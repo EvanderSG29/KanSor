@@ -117,3 +117,24 @@ If existing pages and components support dark mode, new pages and components mus
 - Trying to use `tailwind.config.js` instead of CSS `@theme` directive
 - Using margins for spacing between siblings instead of gap utilities
 - Forgetting to add dark mode variants when the project uses dark mode
+
+## Files Touched
+- resources/views/**/*.blade.php
+- resources/css/*.css
+- resources/js/*.js
+- package.json
+- vite.config.js
+
+## Data Contract
+- Tailwind utility classes and responsive variants.
+- Component structure in Blade templates.
+
+## Testing Wajib
+- Verify the generated UI in browser or via manual review.
+- Confirm no Tailwind v3 directives remain.
+- Ensure new UI uses `@import "tailwindcss"` when needed.
+
+## Acceptance Criteria
+- New styles are implemented using Tailwind v4.
+- UI remains consistent with existing project patterns.
+- No deprecated Tailwind utilities are used.
