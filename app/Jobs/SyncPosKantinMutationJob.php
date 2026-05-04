@@ -49,14 +49,14 @@ class SyncPosKantinMutationJob implements ShouldQueue
     public function handle(PosKantinClient $client): void
     {
         if (! method_exists($client, $this->method)) {
-            throw new RuntimeException(sprintf('Method sinkronisasi POS Kantin [%s] tidak ditemukan.', $this->method));
+            throw new RuntimeException(sprintf('Method sinkronisasi KanSor [%s] tidak ditemukan.', $this->method));
         }
 
         try {
             $client->{$this->method}(...$this->arguments);
         } catch (PosKantinException $exception) {
             if ($this->shouldSkipUnsupportedEndpoint($exception)) {
-                Log::warning('Sinkronisasi POS Kantin dilewati karena endpoint belum tersedia.', [
+                Log::warning('Sinkronisasi KanSor dilewati karena endpoint belum tersedia.', [
                     'method' => $this->method,
                     'arguments' => $this->arguments,
                     'context' => $this->context,
@@ -73,7 +73,7 @@ class SyncPosKantinMutationJob implements ShouldQueue
 
     public function failed(Throwable $exception): void
     {
-        Log::error('Sinkronisasi POS Kantin gagal.', [
+        Log::error('Sinkronisasi KanSor gagal.', [
             'method' => $this->method,
             'arguments' => $this->arguments,
             'context' => $this->context,

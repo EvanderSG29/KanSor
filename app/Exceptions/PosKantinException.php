@@ -10,7 +10,7 @@ class PosKantinException extends Exception
     /**
      * @param  array<string, mixed>  $context
      */
-    public function __construct(string $message = 'Integrasi POS Kantin gagal.', protected array $context = [], ?Throwable $previous = null)
+    public function __construct(string $message = 'Integrasi KanSor gagal.', protected array $context = [], ?Throwable $previous = null)
     {
         parent::__construct($message, 0, $previous);
     }

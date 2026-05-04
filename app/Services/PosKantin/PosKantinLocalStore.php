@@ -106,7 +106,7 @@ class PosKantinLocalStore
         $table = $this->tableMap()[$resource] ?? null;
 
         if ($table === null) {
-            throw new InvalidArgumentException(sprintf('Resource POS Kantin tidak dikenal: %s', $resource));
+            throw new InvalidArgumentException(sprintf('Resource KanSor tidak dikenal: %s', $resource));
         }
 
         return $table;
@@ -120,6 +120,7 @@ class PosKantinLocalStore
         return [
             'users' => 'pos_users',
             'suppliers' => 'pos_suppliers',
+            'foods' => 'pos_foods',
             'buyers' => 'pos_buyers',
             'transactions' => 'pos_transactions',
             'savings' => 'pos_savings',

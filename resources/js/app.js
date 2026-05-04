@@ -521,7 +521,7 @@ if (saleForm instanceof HTMLElement) {
                     return;
                 }
 
-                const matchesSupplier = supplierId === '' || option.dataset.supplierId === supplierId;
+                const matchesSupplier = supplierId !== '' && option.dataset.supplierId === supplierId;
                 option.hidden = ! matchesSupplier;
                 option.disabled = ! matchesSupplier;
             });

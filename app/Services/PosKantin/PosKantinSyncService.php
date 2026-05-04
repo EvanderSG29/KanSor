@@ -23,11 +23,11 @@ class PosKantinSyncService
     /**
      * @return array<string, mixed>
      */
-    public function sync(User $user, string $trigger = 'manual'): array
+    public function sync(User $user, string $trigger = 'manual', array $selectedOutboxIds = []): array
     {
         try {
             return Cache::lock($this->lockKeyForUser($user), 120)
-                ->block(3, fn (): array => $this->performSync($user, $trigger));
+                ->block(3, fn (): array => $this->performSync($user, $trigger, $selectedOutboxIds));
         } catch (LockTimeoutException) {
             return [
                 'ok' => false,
@@ -40,7 +40,7 @@ class PosKantinSyncService
     /**
      * @return array<string, mixed>
      */
-    protected function performSync(User $user, string $trigger): array
+    protected function performSync(User $user, string $trigger, array $selectedOutboxIds = []): array
     {
         $run = PosKantinSyncRun::query()->create([
             'scope_owner_user_id' => $user->getKey(),
@@ -51,7 +51,7 @@ class PosKantinSyncService
 
         try {
             $sessionToken = $this->ensureRemoteSession($user);
-            $pushSummary = $this->pushOutbox($user, $sessionToken);
+            $pushSummary = $this->pushOutbox($user, $sessionToken, $selectedOutboxIds);
             $pullSummary = $this->pullChanges($user, $sessionToken);
 
             $run->fill([
@@ -256,7 +256,7 @@ class PosKantinSyncService
             ->first();
 
         if ($credential === null) {
-            throw new PosKantinException('Perangkat ini belum punya kredensial sinkronisasi POS Kantin.', [
+            throw new PosKantinException('Perangkat ini belum punya kredensial sinkronisasi KanSor.', [
                 'category' => 'authentication',
             ]);
         }
@@ -266,7 +266,7 @@ class PosKantinSyncService
         }
 
         if ($credential->trusted_device_token === null) {
-            throw new PosKantinException('Token trusted device POS Kantin tidak tersedia untuk sinkronisasi.', [
+            throw new PosKantinException('Token trusted device KanSor tidak tersedia untuk sinkronisasi.', [
                 'category' => 'authentication',
             ]);
         }
@@ -287,7 +287,7 @@ class PosKantinSyncService
     /**
      * @return array<string, int>
      */
-    protected function pushOutbox(User $user, string $sessionToken): array
+    protected function pushOutbox(User $user, string $sessionToken, array $selectedOutboxIds = []): array
     {
         $pendingItems = PosKantinSyncOutbox::query()
             ->whereBelongsTo($user, 'user')
@@ -295,12 +295,35 @@ class PosKantinSyncService
             ->orderBy('created_at')
             ->get();
 
+        $selectedIds = collect($selectedOutboxIds)
+            ->map(fn (mixed $id): int => (int) $id)
+            ->filter(fn (int $id): bool => $id > 0)
+            ->unique()
+            ->values();
+
+        if ($selectedIds->isNotEmpty()) {
+            $selectedLookup = $selectedIds->all();
+
+            $pendingItems->each(function (PosKantinSyncOutbox $outbox) use ($selectedLookup): void {
+                if (! in_array((int) $outbox->getKey(), $selectedLookup, true)) {
+                    $outbox->update([
+                        'status' => 'skipped',
+                        'last_error' => 'Sync manual selective: outbox tidak dipilih.',
+                    ]);
+                }
+            });
+
+            $pendingItems = $pendingItems->filter(fn (PosKantinSyncOutbox $outbox): bool => in_array((int) $outbox->getKey(), $selectedLookup, true))->values();
+        }
+
         if ($pendingItems->isEmpty()) {
             return [
                 'queued' => 0,
                 'applied' => 0,
                 'failed' => 0,
                 'conflicts' => 0,
+                'skipped' => $selectedIds->isNotEmpty() ? PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->where('status', 'skipped')->count() : 0,
+                'unsupported' => 0,
             ];
         }
 

@@ -14,7 +14,7 @@ class PosKantinMigrateLegacySpreadsheetCommand extends Command
         {--include-users : Ikut migrasi sheet users tanpa membawa kredensial lama}
         {--allow-without-backups : Lanjut walau backup Google Drive gagal dibuat}';
 
-    protected $description = 'Preview atau jalankan migrasi spreadsheet legacy POS Kantin ke spreadsheet aktif.';
+    protected $description = 'Preview atau jalankan migrasi spreadsheet legacy KanSor ke spreadsheet aktif.';
 
     /**
      * Execute the console command.

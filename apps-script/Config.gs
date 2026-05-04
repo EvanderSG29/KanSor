@@ -1,5 +1,5 @@
 const CONFIG = {
-  APP_NAME: "KanSor POS Kantin API",
+  APP_NAME: "KanSor API",
   APP_VERSION: "0.1.0",
   SPREADSHEET_ID: "",
   SPREADSHEET_ID_PROPERTY: "POS_KANTIN_SPREADSHEET_ID",
@@ -10,7 +10,7 @@ const CONFIG = {
   PASSWORD_RESET_OTP_COOLDOWN_SECONDS: 60,
   PASSWORD_RESET_OTP_MAX_ATTEMPTS: 5,
   DEFAULT_TIMEZONE: "Asia/Jakarta",
-  DEFAULT_SPREADSHEET_TITLE: "KanSor - POS Kantin Database",
+  DEFAULT_SPREADSHEET_TITLE: "KanSor Database",
   SEED_ADMIN_USERS: [
     {
       fullName: "Evander Smid Gidiin",
@@ -19,7 +19,7 @@ const CONFIG = {
       role: "admin",
       status: "aktif",
       classGroup: "",
-      notes: "Admin seed awal backend POS Kantin KanSor.",
+      notes: "Admin seed awal backend KanSor KanSor.",
     },
   ],
   SHEETS: {

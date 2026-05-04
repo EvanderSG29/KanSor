@@ -4,6 +4,7 @@ namespace App\Services\Auth;
 
 use App\Exceptions\PosKantinException;
 use App\Models\PosKantinDeviceCredential;
+use App\Models\Preference;
 use App\Models\User;
 use App\Services\PosKantin\PosKantinSessionClient;
 use Illuminate\Support\Facades\DB;
@@ -77,6 +78,10 @@ class PosKantinUserAuthenticator
                 $user = new User;
             }
 
+            $preferredOfflineDays = (int) (Preference::query()->where('user_id', $user->getKey())->where('key', 'offline_session_days')->value('value') ?? config('services.pos_kantin.offline_login_days', 30));
+            $maxOfflineDays = (int) config('services.pos_kantin.offline_login_days_max', 30);
+            $offlineDays = max(1, min($preferredOfflineDays, $maxOfflineDays));
+
             $user->fill([
                 'name' => (string) ($remoteUser['fullName'] ?? $email),
                 'email' => trim($email),
@@ -86,7 +91,7 @@ class PosKantinUserAuthenticator
                 'status' => (string) ($remoteUser['status'] ?? 'aktif'),
                 'active' => (string) ($remoteUser['status'] ?? 'aktif') === User::STATUS_ACTIVE,
                 'remote_auth_updated_at' => (string) ($remoteUser['authUpdatedAt'] ?? ''),
-                'offline_login_expires_at' => now()->addDays((int) config('services.pos_kantin.offline_login_days', 30)),
+                'offline_login_expires_at' => now()->addDays($offlineDays),
                 'last_remote_login_at' => now(),
             ]);
             $user->save();

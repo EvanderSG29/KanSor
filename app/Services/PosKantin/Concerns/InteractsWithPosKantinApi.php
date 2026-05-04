@@ -15,7 +15,7 @@ trait InteractsWithPosKantinApi
     protected function ensureConfigured(): void
     {
         if (! $this->configured()) {
-            throw new PosKantinException('POS Kantin API URL belum dikonfigurasi.', [
+            throw new PosKantinException('KanSor API URL belum dikonfigurasi.', [
                 'category' => 'configuration',
             ]);
         }
@@ -56,7 +56,7 @@ trait InteractsWithPosKantinApi
             return $this->http()->get($this->apiUrl(), $query);
         } catch (ConnectionException $exception) {
             throw new PosKantinException(
-                sprintf('Gagal terhubung ke POS Kantin API saat memanggil action [%s].', $action),
+                sprintf('Gagal terhubung ke KanSor API saat memanggil action [%s].', $action),
                 [
                     'action' => $action,
                     'category' => 'connection',
@@ -76,7 +76,7 @@ trait InteractsWithPosKantinApi
             return $this->http()->post($this->apiUrl(), $body);
         } catch (ConnectionException $exception) {
             throw new PosKantinException(
-                sprintf('Gagal terhubung ke POS Kantin API saat memanggil action [%s].', $action),
+                sprintf('Gagal terhubung ke KanSor API saat memanggil action [%s].', $action),
                 [
                     'action' => $action,
                     'category' => 'connection',
@@ -101,7 +101,7 @@ trait InteractsWithPosKantinApi
     {
         if ($response->failed()) {
             throw new PosKantinException(
-                sprintf('POS Kantin API merespons status HTTP %s.', $response->status()),
+                sprintf('KanSor API merespons status HTTP %s.', $response->status()),
                 [
                     'action' => $action,
                     'category' => 'http',
@@ -114,7 +114,7 @@ trait InteractsWithPosKantinApi
         $payload = $response->json();
 
         if (! is_array($payload) || ! array_key_exists('success', $payload)) {
-            throw new PosKantinException('Respons POS Kantin tidak valid atau bukan JSON yang diharapkan.', [
+            throw new PosKantinException('Respons KanSor tidak valid atau bukan JSON yang diharapkan.', [
                 'action' => $action,
                 'category' => 'malformed_response',
                 'body' => Str::limit($response->body(), 500),
@@ -122,7 +122,7 @@ trait InteractsWithPosKantinApi
         }
 
         if (($payload['success'] ?? false) !== true) {
-            throw new PosKantinException((string) ($payload['message'] ?? 'POS Kantin API mengembalikan kegagalan.'), [
+            throw new PosKantinException((string) ($payload['message'] ?? 'KanSor API mengembalikan kegagalan.'), [
                 'action' => $action,
                 'category' => $this->resolvePayloadFailureCategory((string) ($payload['message'] ?? '')),
                 'payload' => $payload,

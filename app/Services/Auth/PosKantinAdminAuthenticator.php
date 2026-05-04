@@ -64,6 +64,6 @@ class PosKantinAdminAuthenticator
             ->replace(['.', '_', '-'], ' ')
             ->title();
 
-        return $name !== '' ? $name : 'POS Kantin Admin';
+        return $name !== '' ? $name : 'KanSor Admin';
     }
 }

@@ -30,6 +30,16 @@ class OfflineLoginService
             return null;
         }
 
+        if ((string) ($credential->remote_auth_updated_at ?? '') !== (string) ($user->remote_auth_updated_at ?? '')) {
+            $user->forceFill(['offline_login_expires_at' => now()])->save();
+
+            return null;
+        }
+
+        if (! $user->isActiveUser()) {
+            return null;
+        }
+
         return $user;
     }
 
