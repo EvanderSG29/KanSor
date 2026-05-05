@@ -46,7 +46,6 @@
         "is-glob": "^4.0.3",
         "jiti": "^2.6.1",
         "lightningcss": "^1.32.0",
-        "lightningcss-win32-x64-msvc": "^1.32.0",
         "magic-string": "^0.30.21",
         "nanoid": "^3.3.11",
         "node-addon-api": "^7.1.1",
