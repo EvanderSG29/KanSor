@@ -14,15 +14,15 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # opt‑in Node 24
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
-    - uses: actions/checkout@v4  # gunakan versi terbaru (v4.1+ mendukung Node 24)
+    - uses: actions/checkout@v4
 
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.4'          # sesuaikan dengan versi yang dipilih
+        php-version: '8.4'
         tools: composer:v2
         extensions: mbstring, bcmath, pdo, sqlite3
         coverage: none
@@ -42,7 +42,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-php-
 
-    - name: Install dependencies
+    - name: Install Composer dependencies
       run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
     - name: Copy environment file
@@ -53,8 +53,14 @@ jobs:
         php artisan key:generate
         php artisan migrate --force
 
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: npm
+
     - name: Install NPM dependencies
-      run: npm install --no-package-lock
+      run: npm ci
 
     - name: Build assets
       run: npm run build
