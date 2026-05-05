@@ -85,15 +85,9 @@ php artisan native:build win
 
 > Catatan: fokus deployment proyek ini adalah desktop-native, bukan web hosting sebagai target utama.
 
-<<<<<<< HEAD
 ## Sinkronisasi KanSor
 
 - Status sinkronisasi tersedia di halaman `kansor/sinkronisasi`.
-=======
-## Sinkronisasi POS
-
-- Status sinkronisasi tersedia di halaman `pos-kantin/sinkronisasi`.
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 - Mendukung:
   - Sync semua antrean.
   - Sync selected outbox.
@@ -105,23 +99,14 @@ php artisan native:build win
 Tersedia command:
 
 ```bash
-<<<<<<< HEAD
 php artisan kansor:seed-dummy --all
-=======
-php artisan pos-kantin:seed-dummy --all
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 ```
 
 Opsi tambahan:
 
 ```bash
-<<<<<<< HEAD
 php artisan kansor:seed-dummy --only=users,suppliers,foods,transactions,finance
 php artisan kansor:seed-dummy --fresh --all
-=======
-php artisan pos-kantin:seed-dummy --only=users,suppliers,foods,transactions,finance
-php artisan pos-kantin:seed-dummy --fresh --all
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 ```
 
 ## Integrasi Apps Script
@@ -151,20 +136,12 @@ php artisan native:build win
 
 ## Struktur Direktori Penting
 
-<<<<<<< HEAD
 - Backend service folder untuk sinkronisasi, mirror, outbox, dan payload.
-=======
-- `app/Services/PosKantin/` — logic sinkronisasi, mirror, outbox, payload.
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 - `app/Services/Auth/` — autentikasi online/offline.
 - `apps-script/` — source Google Apps Script backend.
 - `database/migrations/` — skema database lokal.
 - `database/seeders/` — data dummy/seeding modular.
-<<<<<<< HEAD
 - `resources/views/kansor/` — UI KanSor dan sinkronisasi.
-=======
-- `resources/views/pos-kantin/` — UI POS dan sinkronisasi.
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 
 ## Kontribusi
 
@@ -184,7 +161,3 @@ Jangan commit file rahasia berikut:
 ## Lisensi
 
 Internal project KanSor. Gunakan sesuai kebijakan tim/pemilik repository.
-<<<<<<< HEAD
-
-=======
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
