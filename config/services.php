@@ -49,7 +49,7 @@ return [
         'offline_login_days_max' => (int) env('KANSOR_OFFLINE_LOGIN_DAYS_MAX', 30),
         'sync_interval_seconds' => (int) env('KANSOR_SYNC_INTERVAL_SECONDS', 60),
     ],
-
+    
     'pos_kantin' => [
         'api_url' => env('POS_KANTIN_API_URL'),
         'admin_email' => env('POS_KANTIN_ADMIN_EMAIL'),
