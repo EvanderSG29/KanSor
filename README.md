@@ -1,10 +1,6 @@
 # KanSor
 
-<<<<<<< HEAD
-KanSor adalah aplikasi **desktop-native offline-first** untuk operasional kasir sekolah. Proyek ini dibangun dengan Laravel 12 dan NativePHP/Electron, dengan backend sinkronisasi berbasis Google Apps Script.
-=======
 KanSor adalah aplikasi **desktop-native offline-first** untuk operasional POS kantin sekolah. Proyek ini dibangun dengan Laravel 12 dan NativePHP/Electron, dengan backend sinkronisasi berbasis Google Apps Script.
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 
 ## Tujuan Produk
 
@@ -18,11 +14,7 @@ KanSor adalah aplikasi **desktop-native offline-first** untuk operasional POS ka
 
 ### 1) Aplikasi Desktop (Laravel + NativePHP)
 - Menyimpan data operasional lokal (mirror + outbox).
-<<<<<<< HEAD
 - Menjalankan CRUD lokal untuk modul KanSor.
-=======
-- Menjalankan CRUD lokal untuk modul POS.
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
 - Mengelola antrean sinkronisasi dan konflik.
 
 ### 2) Backend Sinkronisasi (Google Apps Script)
