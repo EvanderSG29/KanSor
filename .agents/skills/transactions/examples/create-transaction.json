@@ -1,0 +1,14 @@
+{
+  "date": "2026-04-29",
+  "supplier_id": 1,
+  "additional_users": [3, 4],
+  "items": [
+    {
+      "food_id": 10,
+      "unit": "porsi",
+      "quantity": 12,
+      "leftover": 2,
+      "price_per_unit": 8000
+    }
+  ]
+}

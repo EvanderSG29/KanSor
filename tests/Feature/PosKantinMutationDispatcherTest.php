@@ -1,0 +1,209 @@
+<?php
+
+use App\Jobs\SyncKansorMutationJob;
+use App\Services\Kansor\KansorMutationDispatcher;
+use Illuminate\Http\Client\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Queue;
+
+test('dispatcher queues supplier sync when apps script is configured', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+    ]);
+    Queue::fake();
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveSupplier', [
+        ['supplierName' => 'Supplier Baru'],
+    ]);
+
+    expect($result['status'])->toBe('queued')
+        ->and($result['message'])->toContain('masuk antrean');
+
+    Queue::assertPushed(SyncKansorMutationJob::class, function (SyncKansorMutationJob $job): bool {
+        return $job->method === 'saveSupplier'
+            && ($job->arguments[0]['supplierName'] ?? null) === 'Supplier Baru';
+    });
+});
+
+test('dispatcher queues food sync when apps script is configured', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+    ]);
+    Queue::fake();
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveFood', [
+        ['name' => 'Bakwan'],
+    ]);
+
+    expect($result['status'])->toBe('queued')
+        ->and($result['message'])->toContain('masuk antrean');
+
+    Queue::assertPushed(SyncKansorMutationJob::class, function (SyncKansorMutationJob $job): bool {
+        return $job->method === 'saveFood'
+            && ($job->arguments[0]['name'] ?? null) === 'Bakwan';
+    });
+});
+
+test('dispatcher queues transaction sync when apps script is configured', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+    ]);
+    Queue::fake();
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveTransaction', [
+        ['transactionDate' => '2026-04-29', 'foodId' => '1'],
+    ]);
+
+    expect($result['status'])->toBe('queued')
+        ->and($result['message'])->toContain('masuk antrean');
+
+    Queue::assertPushed(SyncKansorMutationJob::class, function (SyncKansorMutationJob $job): bool {
+        return $job->method === 'saveTransaction'
+            && ($job->arguments[0]['transactionDate'] ?? null) === '2026-04-29'
+            && ($job->arguments[0]['foodId'] ?? null) === '1';
+    });
+});
+
+test('dispatcher still warns for legacy local mutation endpoints that are not yet compatible with apps script', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+    ]);
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('createTransaction', [
+        ['transactionDate' => '2026-04-29'],
+    ]);
+
+    expect($result['status'])->toBe('unsupported')
+        ->and($result['message'])->toContain('belum tersinkron ke spreadsheet');
+});
+
+test('dispatcher queues user sync when apps script is configured', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+    ]);
+    Queue::fake();
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveUser', [
+        ['fullName' => 'Petugas Baru'],
+    ]);
+
+    expect($result['status'])->toBe('queued')
+        ->and($result['message'])->toContain('masuk antrean');
+
+    Queue::assertPushed(SyncKansorMutationJob::class, function (SyncKansorMutationJob $job): bool {
+        return $job->method === 'saveUser'
+            && ($job->arguments[0]['fullName'] ?? null) === 'Petugas Baru';
+    });
+});
+
+test('dispatcher warns when pos kantin api is not configured', function () {
+    config([
+        'services.kansor.api_url' => null,
+    ]);
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveSupplier', [
+        ['name' => 'Supplier Baru'],
+    ]);
+
+    expect($result['status'])->toBe('failed')
+        ->and($result['message'])->toContain('belum dikonfigurasi');
+});
+
+test('dispatcher reports applied when sync queue runs mutation immediately', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
+        'queue.default' => 'sync',
+    ]);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://example.test/*' => function (Request $request) {
+            return match ($request['action'] ?? null) {
+                'login' => Http::response([
+                    'success' => true,
+                    'message' => 'Login berhasil.',
+                    'data' => [
+                        'token' => 'service-token',
+                        'expiresAt' => now()->addHour()->toIso8601String(),
+                    ],
+                ]),
+                'saveSupplier' => Http::response([
+                    'success' => true,
+                    'message' => 'Supplier berhasil disimpan.',
+                    'data' => [
+                        'id' => 'SUP-NEW',
+                    ],
+                ]),
+            };
+        },
+    ]);
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveSupplier', [[
+        'supplierName' => 'Supplier Baru',
+        'contactName' => '',
+        'contactPhone' => '08123',
+        'commissionRate' => 10,
+        'commissionBaseType' => 'revenue',
+        'payoutTermDays' => 0,
+        'notes' => '',
+        'isActive' => true,
+    ]]);
+
+    expect($result['status'])->toBe('applied')
+        ->and($result['message'])->toContain('langsung diterapkan');
+});
+
+test('dispatcher reports failed when sync queue execution throws an exception', function () {
+    config([
+        'services.kansor.api_url' => 'https://example.test/macros/s/api/exec',
+        'services.kansor.admin_email' => 'evandersmidgidiin@gmail.com',
+        'services.kansor.admin_password' => 'secret-password',
+        'services.kansor.timeout' => 20,
+        'services.kansor.connect_timeout' => 10,
+        'queue.default' => 'sync',
+    ]);
+
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://example.test/*' => function (Request $request) {
+            return match ($request['action'] ?? null) {
+                'login' => Http::response([
+                    'success' => true,
+                    'message' => 'Login berhasil.',
+                    'data' => [
+                        'token' => 'service-token',
+                        'expiresAt' => now()->addHour()->toIso8601String(),
+                    ],
+                ]),
+                'saveSupplier' => Http::response([
+                    'success' => false,
+                    'message' => 'Apps Script gagal.',
+                    'data' => null,
+                ]),
+            };
+        },
+    ]);
+
+    $result = app(KansorMutationDispatcher::class)->dispatch('saveSupplier', [[
+        'supplierName' => 'Supplier Baru',
+        'contactName' => '',
+        'contactPhone' => '08123',
+        'commissionRate' => 10,
+        'commissionBaseType' => 'revenue',
+        'payoutTermDays' => 0,
+        'notes' => '',
+        'isActive' => true,
+    ]]);
+
+    expect($result['status'])->toBe('failed')
+        ->and($result['message'])->toContain('gagal dijalankan');
+});
+
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6549984 (	modified:   .env.example)

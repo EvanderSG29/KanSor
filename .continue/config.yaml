@@ -1,0 +1,24 @@
+name: Local Config
+version: 1.0.0
+schema: v1
+models:
+  - name: gemma-4-e4b
+    provider: openai
+    model: google/gemma-4-e4b
+    apiBase: "http://localhost:1234/v1"
+    roles:
+      - chat
+      - edit
+      - apply
+  - name: google
+    provider: openai
+    model: google/gemma-4-e4b
+    apiBase: "http://localhost:1234/v1"
+    roles:
+      - autocomplete
+  - name: nomic-embed
+    provider: openai
+    model: text-embedding-nomic-embed-text-v1.5
+    apiBase: "http://localhost:1234/v1"
+    roles:
+      - embed

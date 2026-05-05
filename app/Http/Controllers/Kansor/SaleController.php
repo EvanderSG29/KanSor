@@ -1,0 +1,221 @@
+<?php
+
+namespace App\Http\Controllers\Kansor;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Kansor\StoreSaleRequest;
+use App\Http\Requests\Kansor\UpdateSaleRequest;
+use App\Models\Food;
+use App\Models\Sale;
+use App\Models\Supplier;
+use App\Models\User;
+use App\Services\Kansor\CanteenTotalAggregationService;
+use App\Services\Kansor\SaleCalculationService;
+use App\Services\Kansor\SaleTransactionSyncService;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+
+class SaleController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $user = auth()->user();
+        $sales = Sale::query()
+            ->with(['supplier', 'user', 'items.food'])
+            ->when($user->isPetugas(), fn ($query) => $query->where('user_id', $user->getKey()))
+            ->when($request->filled('supplier_id'), fn ($query) => $query->where('supplier_id', $request->integer('supplier_id')))
+            ->when($request->filled('from'), fn ($query) => $query->whereDate('date', '>=', $request->string('from')->toString()))
+            ->when($request->filled('to'), fn ($query) => $query->whereDate('date', '<=', $request->string('to')->toString()))
+            ->orderByDesc('date')
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('kansor.sales.index', [
+            'filters' => $request->only(['supplier_id', 'from', 'to']),
+            'sales' => $sales,
+            'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
+        ]);
+    }
+
+    public function create(): View
+    {
+        $this->authorize('create', Sale::class);
+
+        return view('kansor.sales.create', $this->formData(new Sale([
+            'date' => now('Asia/Jakarta')->toDateString(),
+            'additional_users' => [],
+        ])));
+    }
+
+    public function store(
+        StoreSaleRequest $request,
+        SaleCalculationService $calculationService,
+        CanteenTotalAggregationService $aggregationService,
+        SaleTransactionSyncService $transactionSyncService,
+    ): RedirectResponse {
+        $this->authorize('create', Sale::class);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
+
+        $sale = DB::transaction(function () use ($request, $calculationService, $aggregationService, $transactionSyncService, &$dispatchResult): Sale {
+            $supplier = Supplier::query()->findOrFail($request->integer('supplier_id'));
+            $sale = Sale::query()->create([
+                'date' => $request->validated()['date'],
+                'supplier_id' => $supplier->getKey(),
+                'user_id' => auth()->id(),
+                'additional_users' => $request->validated()['additional_users'] ?? [],
+                'status_i' => Sale::STATUS_PENDING,
+                'status_ii' => Sale::STATUS_PENDING,
+                'taken_note' => null,
+                'paid_at' => null,
+                'paid_amount' => null,
+            ]);
+
+            $calculationService->syncItems($sale, $supplier, $request->validated()['items']);
+            $aggregationService->recalculateForDate($sale->date->format('Y-m-d'));
+            $dispatchResult = $transactionSyncService->syncSale($sale);
+
+            return $sale;
+        });
+
+        return $this->withKansorDispatchNotice(
+            redirect()
+                ->route('kansor.sales.show', $sale)
+                ->with('status', 'Transaksi berhasil disimpan.'),
+            $dispatchResult,
+        );
+    }
+
+    public function show(Sale $sale): View
+    {
+        $this->authorize('view', $sale);
+
+        return view('kansor.sales.show', [
+            'sale' => $sale->load([
+                'supplier',
+                'user',
+                'items.food',
+                'supplierPaymentConfirmedBy',
+                'canteenDepositConfirmedBy',
+            ]),
+        ]);
+    }
+
+    public function edit(Sale $sale): View
+    {
+        $this->authorize('update', $sale);
+
+        return view('kansor.sales.edit', $this->formData($sale->load('items.food')));
+    }
+
+    public function update(
+        UpdateSaleRequest $request,
+        Sale $sale,
+        SaleCalculationService $calculationService,
+        CanteenTotalAggregationService $aggregationService,
+        SaleTransactionSyncService $transactionSyncService,
+    ): RedirectResponse {
+        $this->authorize('update', $sale);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
+
+        DB::transaction(function () use ($request, $sale, $calculationService, $aggregationService, $transactionSyncService, &$dispatchResult): void {
+            $supplier = Supplier::query()->findOrFail($request->integer('supplier_id'));
+            $originalDate = $sale->date->format('Y-m-d');
+            $originalItemIds = $sale->items()->pluck('id')->all();
+
+            $sale->fill([
+                'date' => $request->validated()['date'],
+                'supplier_id' => $supplier->getKey(),
+                'additional_users' => $request->validated()['additional_users'] ?? [],
+            ])->save();
+
+            $calculationService->syncItems($sale, $supplier, $request->validated()['items']);
+            $aggregationService->recalculateForDate($originalDate);
+            $aggregationService->recalculateForDate($sale->date->format('Y-m-d'));
+            $deletedItemIds = array_values(array_diff($originalItemIds, $sale->items()->pluck('id')->all()));
+            $dispatchResult = $transactionSyncService->syncSale($sale, $deletedItemIds);
+        });
+
+        return $this->withKansorDispatchNotice(
+            redirect()
+                ->route('kansor.sales.show', $sale)
+                ->with('status', 'Transaksi berhasil diperbarui.'),
+            $dispatchResult,
+        );
+    }
+
+    public function destroy(
+        Sale $sale,
+        CanteenTotalAggregationService $aggregationService,
+        SaleTransactionSyncService $transactionSyncService,
+    ): RedirectResponse {
+        $this->authorize('delete', $sale);
+        $dispatchResult = [
+            'status' => 'queued',
+            'warning' => null,
+        ];
+
+        DB::transaction(function () use ($sale, $aggregationService, $transactionSyncService, &$dispatchResult): void {
+            $date = $sale->date->format('Y-m-d');
+            $saleItemIds = $sale->items()->pluck('id')->all();
+            $sale->items()->get()->each->delete();
+            $sale->delete();
+            $aggregationService->recalculateForDate($date);
+            $dispatchResult = $transactionSyncService->deleteSaleItems($saleItemIds);
+        });
+
+        return $this->withKansorDispatchNotice(
+            redirect()
+                ->route('kansor.sales.index')
+                ->with('status', 'Transaksi berhasil dibatalkan.'),
+            $dispatchResult,
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function formData(Sale $sale): array
+    {
+        $currentFoodIds = $sale->relationLoaded('items')
+            ? $sale->items->pluck('food_id')->filter()->all()
+            : [];
+
+        return [
+            'sale' => $sale,
+            'suppliers' => Supplier::query()->active()->orderBy('name')->get(),
+            'foods' => Food::query()
+                ->with('supplier')
+                ->where(function ($query) use ($currentFoodIds): void {
+                    $query->where(function ($builder): void {
+                        $builder->active()->whereHas('supplier', fn ($supplierQuery) => $supplierQuery->active());
+                    });
+
+                    if ($currentFoodIds !== []) {
+                        $query->orWhereIn('id', $currentFoodIds);
+                    }
+                })
+                ->orderBy('name')
+                ->get(),
+            'additionalUsers' => User::query()
+                ->active()
+                ->petugas()
+                ->whereKeyNot(auth()->id())
+                ->orderBy('name')
+                ->get(),
+        ];
+    }
+}
+
+<<<<<<< HEAD:app/Http/Controllers/PosKantin/SaleController.php
+=======
+
+>>>>>>> 6549984 (	modified:   .env.example):app/Http/Controllers/Kansor/SaleController.php
