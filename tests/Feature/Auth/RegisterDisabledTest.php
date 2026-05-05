@@ -56,8 +56,3 @@ test('admin can still create users from the internal admin module', function () 
         ->and($user?->active)->toBeTrue()
         ->and(Hash::check('KanSor!Pass123', (string) $user?->password))->toBeTrue();
 });
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)

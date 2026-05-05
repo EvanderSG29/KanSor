@@ -44,8 +44,8 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
-    Route::redirect('/pos-kantin', '/kansor', 301);
-    Route::get('/pos-kantin/{path}', function (string $path) {
+    Route::redirect('/kansor', '/kansor', 301);
+    Route::get('/kansor/{path}', function (string $path) {
         return redirect('/kansor/'.$path, 301);
     })->where('path', '.*');
 });
@@ -87,7 +87,7 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     };
 
     Route::prefix('kansor')->name('kansor.')->group(fn () => $registerKanSorRoutes('kansor.'));
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(fn () => $registerKanSorRoutes('pos-kantin.'));
+
 
 });
 

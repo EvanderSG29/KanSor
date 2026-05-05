@@ -2,7 +2,7 @@
 
 use App\Models\KansorSyncRun;
 use App\Models\User;
-use App\Services\Kansor\KansorSyncService;
+use App\Services\PosKantin\KansorSyncService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -98,8 +98,3 @@ test('manual sync route shows the lock message to the user', function () {
         ->assertRedirect(route('kansor.sync.index'))
         ->assertSessionHas('error', 'Sinkronisasi untuk akun ini sedang berjalan. Tunggu beberapa detik lalu coba lagi.');
 });
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)

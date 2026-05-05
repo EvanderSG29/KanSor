@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\Events\OpenTelescopeWindow;
 use App\Listeners\OpenTelescopeWindowListener;
-use App\Services\Kansor\KansorSyncService;
+use App\Services\PosKantin\KansorSyncService;
 use App\Services\Setup\SchemaReadinessService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -61,4 +61,3 @@ class AppServiceProvider extends ServiceProvider
         });
     }
 }
-

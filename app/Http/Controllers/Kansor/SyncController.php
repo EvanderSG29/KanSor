@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\KansorSyncConflict;
 use App\Models\KansorSyncOutbox;
 use App\Services\Audit\AuditLogger;
-use App\Services\Kansor\KansorSyncService;
+use App\Services\PosKantin\KansorSyncService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -18,19 +18,11 @@ class SyncController extends Controller
     {
         $user = $request->user();
 
-<<<<<<< HEAD:app/Http/Controllers/PosKantin/SyncController.php
         return view('kansor.sync.index', [
             'conflicts' => $posKantinSyncService->unresolvedConflicts($user),
             'recentRuns' => $posKantinSyncService->recentRuns($user),
             'syncStatus' => $posKantinSyncService->statusForUser($user),
             'pendingOutboxItems' => PosKantinSyncOutbox::query()->whereBelongsTo($user, 'user')->whereIn('status', ['pending', 'failed', 'conflict'])->latest()->limit(50)->get(),
-=======
-        return view('pos-kantin.sync.index', [
-            'conflicts' => $KansorSyncService->unresolvedConflicts($user),
-            'recentRuns' => $KansorSyncService->recentRuns($user),
-            'syncStatus' => $KansorSyncService->statusForUser($user),
-            'pendingOutboxItems' => KansorSyncOutbox::query()->whereBelongsTo($user, 'user')->whereIn('status', ['pending', 'failed', 'conflict'])->latest()->limit(50)->get(),
->>>>>>> 6549984 (	modified:   .env.example):app/Http/Controllers/Kansor/SyncController.php
         ]);
     }
 
@@ -65,7 +57,6 @@ class SyncController extends Controller
             ? 'Sinkronisasi berhasil dijalankan.'
             : ($result['message'] ?? 'Sinkronisasi gagal dijalankan.'));
     }
-
 
     public function runSelected(Request $request, KansorSyncService $KansorSyncService): RedirectResponse
     {
@@ -158,8 +149,3 @@ class SyncController extends Controller
             : ($result['message'] ?? 'Gagal mengirim ulang perubahan lokal.'));
     }
 }
-
-<<<<<<< HEAD:app/Http/Controllers/PosKantin/SyncController.php
-=======
-
->>>>>>> 6549984 (	modified:   .env.example):app/Http/Controllers/Kansor/SyncController.php

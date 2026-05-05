@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Services\Auth\OfflineLoginService;
 use App\Services\Auth\KansorUserAuthenticator;
-use App\Services\Kansor\KansorSyncService;
+use App\Services\Auth\OfflineLoginService;
+use App\Services\PosKantin\KansorSyncService;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -101,5 +101,3 @@ class LoginController extends Controller
         ]);
     }
 }
-
-

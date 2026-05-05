@@ -111,8 +111,3 @@ test('last active admin cannot be set inactive through the update form', functio
         ->and($managedUser?->active)->toBeTrue()
         ->and($managedUser?->status)->toBe(User::STATUS_ACTIVE);
 });
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)

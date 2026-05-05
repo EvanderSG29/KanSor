@@ -89,8 +89,3 @@ test('petugas still receives forbidden on admin user index when schema is ready'
         ->get(route('kansor.admin.users.index'))
         ->assertForbidden();
 });
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)
