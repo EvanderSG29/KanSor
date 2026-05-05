@@ -53,12 +53,8 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
 Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
     Route::get('/home', [HomeController::class, 'index'])->name('home');
 
-<<<<<<< HEAD
-    $registerKanSorRoutes = function (string $namePrefix): void {
-<<<<<<< HEAD
-=======
-    $registerKanSorRoutes = function (): void {
->>>>>>> 44fb9a0 (Fix CI: Add .env.testing and correct route naming)
+
+    $registerKanSorRoutes = function (string $namePrefix = ''): void {
         Route::get('/transaksi', [TransactionController::class, 'index'])->name('transactions.index');
         Route::get('/simpanan', [SavingController::class, 'index'])->name('savings.index');
         Route::get('/pemasok', [SupplierController::class, 'index'])->name('suppliers.index');
@@ -73,79 +69,25 @@ Route::middleware(['auth', 'role:admin,petugas'])->group(function () {
         Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name('sync.retry');
         Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name('sync.outbox.discard');
         Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name('sync.outbox.resend');
-<<<<<<< HEAD
 
         Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () use ($namePrefix): void {
             Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
-            Route::resource('users', AdminUserController::class)->except('show')->names('users');
-            Route::resource('suppliers', AdminSupplierController::class)->except('show')->names('suppliers');
-            Route::resource('foods', AdminFoodController::class)->except('show')->names('foods');
-            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->names('sales');
-            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index'])->names('canteen-totals');
-=======
-        Route::get('/transaksi', [TransactionController::class, 'index'])->name($namePrefix.'transactions.index');
-        Route::get('/simpanan', [SavingController::class, 'index'])->name($namePrefix.'savings.index');
-        Route::get('/pemasok', [SupplierController::class, 'index'])->name($namePrefix.'suppliers.index');
-        Route::get('/pembayaran', [SupplierPayoutController::class, 'index'])->name($namePrefix.'supplier-payouts.index');
-        Route::get('/laporan', [ReportController::class, 'index'])->name($namePrefix.'reports.index');
-        Route::get('/pengguna', [UserController::class, 'index'])->name($namePrefix.'users.index');
-        Route::get('/sinkronisasi', [SyncController::class, 'index'])->name($namePrefix.'sync.index');
-        Route::get('/sinkronisasi/status', [SyncController::class, 'status'])->name($namePrefix.'sync.status');
-        Route::post('/sinkronisasi/auto', [SyncController::class, 'auto'])->middleware('throttle:sync-auto')->name($namePrefix.'sync.auto');
-        Route::post('/sinkronisasi/jalankan', [SyncController::class, 'run'])->name($namePrefix.'sync.run');
-        Route::post('/sinkronisasi/jalankan-terpilih', [SyncController::class, 'runSelected'])->name($namePrefix.'sync.run-selected');
-        Route::post('/sinkronisasi/retry', [SyncController::class, 'retryFailed'])->name($namePrefix.'sync.retry');
-        Route::post('/sinkronisasi/outbox/{outboxId}/discard', [SyncController::class, 'discard'])->name($namePrefix.'sync.outbox.discard');
-        Route::post('/sinkronisasi/outbox/{outboxId}/resend', [SyncController::class, 'resend'])->name($namePrefix.'sync.outbox.resend');
-=======
->>>>>>> 44fb9a0 (Fix CI: Add .env.testing and correct route naming)
+            Route::resource('users', AdminUserController::class)->except('show')->names($namePrefix . 'users');
+            Route::resource('suppliers', AdminSupplierController::class)->except('show')->names($namePrefix . 'suppliers');
+            Route::resource('foods', AdminFoodController::class)->except('show')->names($namePrefix . 'foods');
+            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->names($namePrefix . 'sales');
+            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index'])->names($namePrefix . 'canteen-totals');
 
-        Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function (): void {
-            Route::get('audit-logs', [AdminAuditLogController::class, 'index'])->name('audit-logs.index');
-<<<<<<< HEAD
-            Route::resource('users', AdminUserController::class)->except('show')->names($namePrefix.'admin.users');
-            Route::resource('suppliers', AdminSupplierController::class)->except('show')->names($namePrefix.'admin.suppliers');
-            Route::resource('foods', AdminFoodController::class)->except('show')->names($namePrefix.'admin.foods');
-            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->names($namePrefix.'admin.sales');
-            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index'])->names($namePrefix.'admin.canteen-totals');
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
-=======
-            Route::resource('users', AdminUserController::class)->except('show')->names('users');
-            Route::resource('suppliers', AdminSupplierController::class)->except('show')->names('suppliers');
-            Route::resource('foods', AdminFoodController::class)->except('show')->names('foods');
-            Route::resource('sales', AdminSaleController::class)->only(['index', 'show', 'edit', 'update', 'destroy'])->names('sales');
-            Route::resource('canteen-totals', AdminCanteenTotalController::class)->only(['index'])->names('canteen-totals');
->>>>>>> 44fb9a0 (Fix CI: Add .env.testing and correct route naming)
-            Route::patch('sales/{sale}/confirm-supplier-paid', [AdminSaleController::class, 'confirmSupplierPaid'])->name('sales.confirm-supplier-paid');
-            Route::patch('sales/{sale}/confirm-canteen-deposited', [AdminSaleController::class, 'confirmCanteenDeposited'])->name('sales.confirm-canteen-deposited');
+            Route::patch('sales/{sale}/confirm-supplier-paid', [AdminSaleController::class, 'confirmSupplierPaid'])->name($namePrefix . 'sales.confirm-supplier-paid');
+            Route::patch('sales/{sale}/confirm-canteen-deposited', [AdminSaleController::class, 'confirmCanteenDeposited'])->name($namePrefix . 'sales.confirm-canteen-deposited');
         });
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-        Route::resource('sales', LocalSaleController::class)->names('sales');
-        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update'])->names('preferences');
-    };
-
-    Route::prefix('kansor')->name('kansor.')->group(fn () => $registerKanSorRoutes(''));
-=======
-        Route::resource('sales', LocalSaleController::class)->names($namePrefix.'sales');
-        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update'])->names($namePrefix.'preferences');
+        Route::resource('sales', LocalSaleController::class)->names($namePrefix . 'sales');
+        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update'])->names($namePrefix . 'preferences');
     };
 
     Route::prefix('kansor')->name('kansor.')->group(fn () => $registerKanSorRoutes('kansor.'));
     Route::prefix('pos-kantin')->name('pos-kantin.')->group(fn () => $registerKanSorRoutes('pos-kantin.'));
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
-=======
-        Route::resource('sales', LocalSaleController::class)->names('sales');
-        Route::resource('preferences', PreferenceController::class)->only(['index', 'store', 'update'])->names('preferences');
-    };
 
-    Route::prefix('kansor')->name('kansor.')->group(fn () => $registerKanSorRoutes());
-    Route::prefix('pos-kantin')->name('pos-kantin.')->group(fn () => $registerKanSorRoutes());
->>>>>>> 44fb9a0 (Fix CI: Add .env.testing and correct route naming)
 });
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)
