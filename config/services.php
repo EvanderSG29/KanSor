@@ -35,10 +35,6 @@ return [
         ],
     ],
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6549984 (	modified:   .env.example)
     'kansor' => [
         'api_url' => env('KANSOR_API_URL'),
         'admin_email' => env('KANSOR_ADMIN_EMAIL'),
@@ -52,8 +48,8 @@ return [
         'offline_login_days' => (int) env('KANSOR_OFFLINE_LOGIN_DAYS', 30),
         'offline_login_days_max' => (int) env('KANSOR_OFFLINE_LOGIN_DAYS_MAX', 30),
         'sync_interval_seconds' => (int) env('KANSOR_SYNC_INTERVAL_SECONDS', 60),
-<<<<<<< HEAD
-=======
+    ],
+
     'pos_kantin' => [
         'api_url' => env('POS_KANTIN_API_URL'),
         'admin_email' => env('POS_KANTIN_ADMIN_EMAIL'),
@@ -67,14 +63,6 @@ return [
         'offline_login_days' => (int) env('POS_KANTIN_OFFLINE_LOGIN_DAYS', 30),
         'offline_login_days_max' => (int) env('POS_KANTIN_OFFLINE_LOGIN_DAYS_MAX', 30),
         'sync_interval_seconds' => (int) env('POS_KANTIN_SYNC_INTERVAL_SECONDS', 60),
->>>>>>> c97eb59 (Enhance AdminLTE UX with toast/modal and clean obsolete dev notes)
-=======
->>>>>>> 6549984 (	modified:   .env.example)
     ],
 
 ];
-
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)
