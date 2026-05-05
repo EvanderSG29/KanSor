@@ -62,7 +62,3 @@ class AppServiceProvider extends ServiceProvider
     }
 }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> 6549984 (	modified:   .env.example)
